@@ -27,10 +27,10 @@ const schema = yup.object({
     .required('Radius is required'),
   categories: yup
     .array()
-    .of(yup.string().required())
+    .of(yup.string().oneOf(['school', 'hospital', 'government', 'religious', 'store', 'restaurant', 'gas_station', 'bank', 'pharmacy', 'police']).required())
     .min(1, 'Select at least one category')
     .required('Categories are required')
-});
+}) as yup.ObjectSchema<CoordinateInputForm>;
 
 const availableCategories: { id: POICategory; name: string; description: string }[] = [
   { id: 'school', name: 'Schools', description: 'Educational institutions' },
