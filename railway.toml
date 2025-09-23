@@ -1,0 +1,15 @@
+# Railway Configuration for Location Intelligence Backend
+
+# Main service configuration
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "cd backend && npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Environment variables
+[env]
+NODE_ENV = "production"
+PORT = "3001"
