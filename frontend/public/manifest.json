@@ -3,7 +3,7 @@
   "name": "Location Intelligence Web App",
   "description": "Analyze GPS coordinates, find nearby POIs, get navigation directions, and view satellite imagery",
   "icons": [],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff",

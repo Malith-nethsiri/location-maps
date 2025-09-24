@@ -38,22 +38,32 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, postman, etc.)
     if (!origin) return callback(null, true);
 
+    const allowedPatterns = [
+      /^http:\/\/localhost:(3000|3001)$/,
+      /^https:\/\/location-maps.*\.vercel\.app$/,
+      /^https:\/\/.*-malith-vihangas-projects\.vercel\.app$/,
+    ];
+
+    // Check specific allowed origins
     const allowedOrigins = [
-      'http://localhost:3000',
       'https://location-maps-pi.vercel.app',
-      'https://location-maps-pi.vercel.app/',
       process.env.CORS_ORIGIN
     ].filter(Boolean);
 
     // Remove trailing slashes for comparison
     const normalizedOrigin = origin.replace(/\/$/, '');
-    const normalizedAllowed = allowedOrigins.map(o => o.replace(/\/$/, ''));
 
-    if (normalizedAllowed.includes(normalizedOrigin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    // Check exact matches first
+    if (allowedOrigins.some(allowed => normalizedOrigin === allowed.replace(/\/$/, ''))) {
+      return callback(null, true);
     }
+
+    // Check pattern matches
+    if (allowedPatterns.some(pattern => pattern.test(normalizedOrigin))) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 }));
