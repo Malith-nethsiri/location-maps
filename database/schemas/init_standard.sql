@@ -140,7 +140,12 @@ INSERT INTO cities (name, country, state, latitude, longitude, population, is_ma
 ('Tokyo', 'Japan', 'Tokyo', 35.6762, 139.6503, 13929286, true, 'Asia/Tokyo'),
 ('Seoul', 'South Korea', 'Seoul', 37.5665, 126.9780, 9733509, true, 'Asia/Seoul'),
 ('Sydney', 'Australia', 'New South Wales', -33.8688, 151.2093, 5312163, true, 'Australia/Sydney'),
-('Melbourne', 'Australia', 'Victoria', -37.8136, 144.9631, 5078193, true, 'Australia/Melbourne')
+('Melbourne', 'Australia', 'Victoria', -37.8136, 144.9631, 5078193, true, 'Australia/Melbourne'),
+('Colombo', 'Sri Lanka', 'Western Province', 6.9271, 79.8612, 752993, true, 'Asia/Colombo'),
+('Kandy', 'Sri Lanka', 'Central Province', 7.2906, 80.6337, 125351, true, 'Asia/Colombo'),
+('Galle', 'Sri Lanka', 'Southern Province', 6.0535, 80.2210, 99478, true, 'Asia/Colombo'),
+('Negombo', 'Sri Lanka', 'Western Province', 7.2083, 79.8358, 142136, true, 'Asia/Colombo'),
+('Jaffna', 'Sri Lanka', 'Northern Province', 9.6615, 80.0255, 88138, true, 'Asia/Colombo')
 ON CONFLICT DO NOTHING;
 
 -- Create function to find nearest city using Haversine formula
