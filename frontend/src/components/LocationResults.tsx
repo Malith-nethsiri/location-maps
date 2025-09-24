@@ -177,6 +177,17 @@ const LocationResults: React.FC<LocationResultsProps> = ({
           </div>
         )}
 
+        {/* DEBUG: Show raw data */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg mx-4 my-4 p-4">
+          <h3 className="font-bold text-yellow-800 mb-2">🐛 DEBUG INFO</h3>
+          <div className="text-xs text-yellow-700">
+            <p><strong>nearby_cities:</strong> {JSON.stringify(analysis.nearby_cities || 'undefined')}</p>
+            <p><strong>directions_from_cities:</strong> {JSON.stringify(analysis.directions_from_cities || 'undefined')}</p>
+            <p><strong>directions_from_city:</strong> {JSON.stringify(analysis.directions_from_city ? 'exists' : 'undefined')}</p>
+            <p><strong>nearest_city:</strong> {JSON.stringify(analysis.nearest_city || 'undefined')}</p>
+          </div>
+        </div>
+
         {/* How to Get Here - Multiple Cities Directions */}
         {analysis.directions_from_cities && analysis.directions_from_cities.length > 0 && (
           <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg mx-4 my-4">
