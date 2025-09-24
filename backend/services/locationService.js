@@ -228,15 +228,37 @@ class LocationService {
   // Find multiple nearby cities for access information
   async findNearbyCities(latitude, longitude, maxDistance = 100, limit = 5) {
     try {
+      logger.info(`DEBUG: Finding nearby cities for ${latitude}, ${longitude} within ${maxDistance}km`);
+
+      // First, check if cities table exists
+      const tableCheck = await query("SELECT to_regclass('cities') as table_exists");
+      logger.info(`DEBUG: Cities table exists: ${tableCheck.rows[0].table_exists !== null}`);
+
+      if (tableCheck.rows[0].table_exists === null) {
+        logger.error('DEBUG: Cities table does not exist!');
+        return [];
+      }
+
+      // Check how many total cities we have
+      const cityCount = await query('SELECT COUNT(*) as count FROM cities');
+      logger.info(`DEBUG: Total cities in database: ${cityCount.rows[0].count}`);
+
       // First, try the new function
-      let result = await query(
-        'SELECT * FROM find_nearby_cities($1, $2, $3, $4)',
-        [latitude, longitude, maxDistance, limit]
-      );
+      let result;
+      try {
+        result = await query(
+          'SELECT * FROM find_nearby_cities($1, $2, $3, $4)',
+          [latitude, longitude, maxDistance, limit]
+        );
+        logger.info(`DEBUG: find_nearby_cities function returned ${result.rows.length} cities`);
+      } catch (funcError) {
+        logger.warn(`DEBUG: find_nearby_cities function failed: ${funcError.message}`);
+        result = null;
+      }
 
       // If function doesn't exist or no results, fallback to basic query
       if (!result || result.rows.length === 0) {
-        logger.warn('find_nearby_cities function failed, using fallback query');
+        logger.warn('DEBUG: Using fallback query');
 
         // Ensure Sri Lankan cities exist
         await this.ensureSriLankanCities();
@@ -284,11 +306,13 @@ class LocationService {
         `, [latitude, longitude, maxDistance, limit]);
       }
 
+      logger.info(`DEBUG: Fallback query returned ${result.rows.length} cities`);
       if (result.rows.length === 0) {
+        logger.warn('DEBUG: No cities found within radius despite Sri Lankan cities existing');
         return [];
       }
 
-      return result.rows.map(city => ({
+      const mappedCities = result.rows.map(city => ({
         name: city.city_name,
         country: city.country,
         state: city.state,
@@ -300,8 +324,12 @@ class LocationService {
         population: city.population
       }));
 
+      logger.info(`DEBUG: Returning ${mappedCities.length} mapped cities: ${mappedCities.map(c => `${c.name} (${c.distance_km}km)`).join(', ')}`);
+      return mappedCities;
+
     } catch (error) {
-      logger.error('Find nearby cities error:', error);
+      logger.error('DEBUG: Find nearby cities ERROR:', error.message);
+      logger.error('DEBUG: Full error stack:', error);
       return []; // Return empty array on error instead of failing
     }
   }
@@ -309,6 +337,8 @@ class LocationService {
   // Ensure Sri Lankan cities exist in database (fallback)
   async ensureSriLankanCities() {
     try {
+      logger.info('DEBUG: Ensuring Sri Lankan cities exist...');
+
       const sriLankanCities = [
         {name: 'Colombo', country: 'Sri Lanka', state: 'Western Province', latitude: 6.9271, longitude: 79.8612, population: 752993},
         {name: 'Kandy', country: 'Sri Lanka', state: 'Central Province', latitude: 7.2906, longitude: 80.6337, population: 125351},
@@ -317,24 +347,38 @@ class LocationService {
         {name: 'Jaffna', country: 'Sri Lanka', state: 'Northern Province', latitude: 9.6615, longitude: 80.0255, population: 88138}
       ];
 
+      let insertedCount = 0;
       for (const city of sriLankanCities) {
-        // Check if city already exists
-        const existingCity = await query(
-          'SELECT id FROM cities WHERE name = $1 AND country = $2',
-          [city.name, city.country]
-        );
+        try {
+          // Check if city already exists
+          const existingCity = await query(
+            'SELECT id FROM cities WHERE name = $1 AND country = $2',
+            [city.name, city.country]
+          );
 
-        if (existingCity.rows.length === 0) {
-          await query(`
-            INSERT INTO cities (name, country, state, latitude, longitude, population, is_major_city, timezone)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          `, [city.name, city.country, city.state, city.latitude, city.longitude, city.population, true, 'Asia/Colombo']);
+          if (existingCity.rows.length === 0) {
+            await query(`
+              INSERT INTO cities (name, country, state, latitude, longitude, population, is_major_city, timezone)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [city.name, city.country, city.state, city.latitude, city.longitude, city.population, true, 'Asia/Colombo']);
+            insertedCount++;
+            logger.info(`DEBUG: Inserted city: ${city.name}`);
+          } else {
+            logger.info(`DEBUG: City already exists: ${city.name}`);
+          }
+        } catch (cityError) {
+          logger.error(`DEBUG: Failed to insert/check city ${city.name}:`, cityError.message);
         }
       }
 
-      logger.info('Sri Lankan cities ensured in database');
+      logger.info(`DEBUG: Sri Lankan cities process complete. Inserted: ${insertedCount} cities`);
+
+      // Verify cities were inserted
+      const sriLankanCount = await query("SELECT COUNT(*) as count FROM cities WHERE country = 'Sri Lanka'");
+      logger.info(`DEBUG: Total Sri Lankan cities in database: ${sriLankanCount.rows[0].count}`);
+
     } catch (error) {
-      logger.error('Failed to ensure Sri Lankan cities:', error);
+      logger.error('DEBUG: Failed to ensure Sri Lankan cities:', error.message);
     }
   }
 
