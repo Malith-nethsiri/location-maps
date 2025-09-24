@@ -342,4 +342,129 @@ router.post('/fix-sri-lankan-cities', async (req, res, next) => {
   }
 });
 
+// POST /api/location/debug-nearby-cities
+// Debug nearby cities functionality step by step
+router.post('/debug-nearby-cities', async (req, res, next) => {
+  try {
+    const { latitude = 7.057203, longitude = 80.176836, maxDistance = 100, limit = 5 } = req.body;
+
+    const locationService = require('../services/locationService');
+    const service = new locationService();
+
+    const debugResults = {};
+
+    // Step 1: Test table existence
+    const tableCheck = await query("SELECT to_regclass('cities') as table_exists");
+    debugResults.table_exists = tableCheck.rows[0].table_exists !== null;
+
+    // Step 2: Count cities
+    const cityCount = await query('SELECT COUNT(*) as count FROM cities');
+    debugResults.total_cities = parseInt(cityCount.rows[0].count);
+
+    // Step 3: Count Sri Lankan cities
+    const sriLankanCount = await query("SELECT COUNT(*) as count FROM cities WHERE country = 'Sri Lanka'");
+    debugResults.sri_lankan_cities = parseInt(sriLankanCount.rows[0].count);
+
+    // Step 4: Try the function
+    let functionResult;
+    try {
+      functionResult = await query(
+        'SELECT * FROM find_nearby_cities($1, $2, $3, $4)',
+        [latitude, longitude, maxDistance, limit]
+      );
+      debugResults.function_result = {
+        success: true,
+        rows: functionResult.rows.length,
+        data: functionResult.rows
+      };
+    } catch (funcError) {
+      debugResults.function_result = {
+        success: false,
+        error: funcError.message
+      };
+    }
+
+    // Step 5: Try manual fallback query
+    try {
+      const manualResult = await query(`
+        SELECT
+          name as city_name,
+          country,
+          state,
+          latitude,
+          longitude,
+          ROUND(
+            CAST(
+              6371 * acos(
+                cos(radians($1)) *
+                cos(radians(latitude)) *
+                cos(radians(longitude) - radians($2)) +
+                sin(radians($1)) *
+                sin(radians(latitude))
+              ) AS DECIMAL
+            ), 2
+          ) as distance_km,
+          population
+        FROM cities
+        WHERE (
+          6371 * acos(
+            cos(radians($1)) *
+            cos(radians(latitude)) *
+            cos(radians(longitude) - radians($2)) +
+            sin(radians($1)) *
+            sin(radians(latitude))
+          )
+        ) <= $3
+        ORDER BY (
+          6371 * acos(
+            cos(radians($1)) *
+            cos(radians(latitude)) *
+            cos(radians(longitude) - radians($2)) +
+            sin(radians($1)) *
+            sin(radians(latitude))
+          )
+        )
+        LIMIT $4
+      `, [latitude, longitude, maxDistance, limit]);
+
+      debugResults.manual_query = {
+        success: true,
+        rows: manualResult.rows.length,
+        data: manualResult.rows
+      };
+    } catch (manualError) {
+      debugResults.manual_query = {
+        success: false,
+        error: manualError.message
+      };
+    }
+
+    // Step 6: Test the actual service method
+    try {
+      const serviceResult = await service.findNearbyCities(latitude, longitude, maxDistance, limit);
+      debugResults.service_method = {
+        success: true,
+        result: serviceResult,
+        count: serviceResult.length
+      };
+    } catch (serviceError) {
+      debugResults.service_method = {
+        success: false,
+        error: serviceError.message
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      coordinates: { latitude, longitude },
+      parameters: { maxDistance, limit },
+      debug: debugResults
+    });
+
+  } catch (error) {
+    logger.error('Debug nearby cities error:', error);
+    next(error);
+  }
+});
+
 module.exports = router;
