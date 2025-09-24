@@ -31,9 +31,9 @@ const testConnection = async () => {
     const client = await pool.connect();
     logger.info('Database connection successful');
 
-    // Test PostGIS extension
-    const result = await client.query('SELECT PostGIS_Version() as version');
-    logger.info(`PostGIS version: ${result.rows[0].version}`);
+    // Test database connection
+    const result = await client.query('SELECT version()');
+    logger.info(`Database connected: PostgreSQL`);
 
     client.release();
   } catch (err) {
