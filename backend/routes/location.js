@@ -282,4 +282,64 @@ router.get('/test-db', async (req, res, next) => {
   }
 });
 
+// POST /api/location/fix-sri-lankan-cities
+// Manually insert Sri Lankan cities (temporary fix for production)
+router.post('/fix-sri-lankan-cities', async (req, res, next) => {
+  try {
+    const sriLankanCities = [
+      {name: 'Colombo', country: 'Sri Lanka', state: 'Western Province', latitude: 6.9271, longitude: 79.8612, population: 752993},
+      {name: 'Kandy', country: 'Sri Lanka', state: 'Central Province', latitude: 7.2906, longitude: 80.6337, population: 125351},
+      {name: 'Galle', country: 'Sri Lanka', state: 'Southern Province', latitude: 6.0535, longitude: 80.2210, population: 99478},
+      {name: 'Negombo', country: 'Sri Lanka', state: 'Western Province', latitude: 7.2083, longitude: 79.8358, population: 142136},
+      {name: 'Jaffna', country: 'Sri Lanka', state: 'Northern Province', latitude: 9.6615, longitude: 80.0255, population: 88138}
+    ];
+
+    const results = {
+      inserted: [],
+      existing: [],
+      errors: []
+    };
+
+    for (const city of sriLankanCities) {
+      try {
+        // Check if city already exists
+        const existingCity = await query(
+          'SELECT id FROM cities WHERE name = $1 AND country = $2',
+          [city.name, city.country]
+        );
+
+        if (existingCity.rows.length === 0) {
+          await query(`
+            INSERT INTO cities (name, country, state, latitude, longitude, population, is_major_city, timezone)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          `, [city.name, city.country, city.state, city.latitude, city.longitude, city.population, true, 'Asia/Colombo']);
+          results.inserted.push(city.name);
+        } else {
+          results.existing.push(city.name);
+        }
+      } catch (cityError) {
+        results.errors.push({
+          city: city.name,
+          error: cityError.message
+        });
+      }
+    }
+
+    // Verify Sri Lankan cities after insertion
+    const verifyResult = await query("SELECT name, latitude, longitude FROM cities WHERE country = 'Sri Lanka' ORDER BY name");
+
+    res.status(200).json({
+      success: true,
+      data: {
+        insertion_results: results,
+        sri_lankan_cities_after_insert: verifyResult.rows
+      }
+    });
+
+  } catch (error) {
+    logger.error('Fix Sri Lankan cities error:', error);
+    next(error);
+  }
+});
+
 module.exports = router;
