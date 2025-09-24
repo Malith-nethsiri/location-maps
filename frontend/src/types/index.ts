@@ -98,8 +98,8 @@ export interface NearestCity {
   timezone?: string;
 }
 
-// Satellite Imagery Types
-export interface SatelliteImagery {
+// Map Imagery Types (roadmap view)
+export interface MapImagery {
   image_url: string;
   metadata: {
     center: Coordinates;
@@ -113,13 +113,17 @@ export interface SatelliteImagery {
   };
 }
 
+// Backward compatibility
+export type SatelliteImagery = MapImagery;
+
 // Location Analysis Types
 export interface LocationAnalysis {
   coordinates: Coordinates;
   address: LocationAddress;
   nearest_city: NearestCity | null;
+  directions_from_city: Route | null;
   points_of_interest: POI[];
-  satellite_imagery: SatelliteImagery;
+  map_imagery: MapImagery;
   search_radius: number;
   total_pois_found: number;
   response_time_ms: number;

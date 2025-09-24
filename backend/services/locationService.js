@@ -25,6 +25,22 @@ class LocationService {
         this.getSatelliteImagery(latitude, longitude)
       ]);
 
+      // Get directions from nearest city if found
+      let directionsFromCity = null;
+      if (nearestCity && nearestCity.latitude && nearestCity.longitude) {
+        try {
+          const navigationService = require('./navigationService');
+          const navService = new navigationService();
+          directionsFromCity = await navService.getDirections({
+            origin: { latitude: nearestCity.latitude, longitude: nearestCity.longitude },
+            destination: { latitude, longitude },
+            travelMode: 'DRIVE'
+          });
+        } catch (error) {
+          logger.warn('Could not get directions from nearest city:', error.message);
+        }
+      }
+
       const responseTime = Date.now() - startTime;
 
       // Cache the query for analytics
@@ -42,8 +58,9 @@ class LocationService {
         coordinates: { latitude, longitude },
         address: geocodeResult,
         nearest_city: nearestCity,
+        directions_from_city: directionsFromCity,
         points_of_interest: pois,
-        satellite_imagery: satelliteImagery,
+        map_imagery: satelliteImagery,
         search_radius: radius,
         total_pois_found: pois.length,
         response_time_ms: responseTime
@@ -104,10 +121,10 @@ class LocationService {
     }
   }
 
-  // Get satellite imagery for coordinates
+  // Get map imagery for coordinates (road view with close zoom)
   async getSatelliteImagery(latitude, longitude, options = {}) {
     try {
-      const { zoom = 15, size = '400x400', maptype = 'satellite' } = options;
+      const { zoom = 18, size = '600x400', maptype = 'roadmap' } = options;
 
       const url = 'https://maps.googleapis.com/maps/api/staticmap';
       const params = {
@@ -132,8 +149,8 @@ class LocationService {
       };
 
     } catch (error) {
-      logger.error('Satellite imagery error:', error);
-      throw new Error('Failed to get satellite imagery');
+      logger.error('Map imagery error:', error);
+      throw new Error('Failed to get map imagery');
     }
   }
 

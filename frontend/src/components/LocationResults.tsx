@@ -26,7 +26,7 @@ const LocationResults: React.FC<LocationResultsProps> = ({
   onShowPOIDetails,
   className = ''
 }) => {
-  const [expandedSections, setExpandedSections] = useState<string[]>(['address', 'nearest_city']);
+  const [expandedSections, setExpandedSections] = useState<string[]>(['address', 'nearest_city', 'directions']);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const toggleSection = (section: string) => {
@@ -177,6 +177,54 @@ const LocationResults: React.FC<LocationResultsProps> = ({
           </div>
         )}
 
+        {/* Directions from Nearest City */}
+        {analysis.directions_from_city && (
+          <div className="p-4 border-b">
+            <button
+              onClick={() => toggleSection('directions')}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Route className="text-green-600" size={20} />
+                <h3 className="font-semibold">Directions from {analysis.nearest_city?.name}</h3>
+              </div>
+              {isExpanded('directions') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
+            {isExpanded('directions') && (
+              <div className="mt-3">
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-gray-600">
+                      <p><strong>Distance:</strong> {analysis.directions_from_city.distance.text}</p>
+                      <p><strong>Duration:</strong> {analysis.directions_from_city.duration.text}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-700 mb-2">Turn-by-turn directions:</h4>
+                    {analysis.directions_from_city.steps.map((step, index) => (
+                      <div key={index} className="flex items-start gap-3 p-2 bg-white rounded border-l-4 border-green-400">
+                        <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-medium">
+                          {step.step_number}
+                        </span>
+                        <div className="flex-grow">
+                          <p className="text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: step.instruction }} />
+                          {step.distance && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {step.distance.text} • {step.duration?.text}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Points of Interest */}
         <div className="p-4">
           <button
@@ -297,33 +345,33 @@ const LocationResults: React.FC<LocationResultsProps> = ({
           )}
         </div>
 
-        {/* Satellite Imagery */}
+        {/* Road Map View */}
         <div className="p-4">
           <button
             onClick={() => toggleSection('satellite')}
             className="flex items-center justify-between w-full text-left"
           >
-            <h3 className="text-lg font-semibold text-gray-800">Satellite View</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Road Map View</h3>
             {isExpanded('satellite') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </button>
 
           {isExpanded('satellite') && (
             <div className="mt-3">
               <div className="bg-gray-50 rounded-lg p-4 text-center">
-                {analysis.satellite_imagery ? (
+                {(analysis.map_imagery || analysis.satellite_imagery) ? (
                   <div>
                     <img
-                      src={analysis.satellite_imagery.image_url}
-                      alt="Satellite view"
+                      src={(analysis.map_imagery || analysis.satellite_imagery)?.image_url}
+                      alt="Road map view"
                       className="mx-auto rounded-lg shadow-md max-w-full h-auto"
                       style={{ maxHeight: '400px' }}
                     />
                     <p className="text-sm text-gray-600 mt-2">
-                      Satellite view centered at {analysis.coordinates.latitude.toFixed(6)}, {analysis.coordinates.longitude.toFixed(6)}
+                      Road map centered at {analysis.coordinates.latitude.toFixed(6)}, {analysis.coordinates.longitude.toFixed(6)}
                     </p>
                   </div>
                 ) : (
-                  <p className="text-gray-500">Satellite imagery not available</p>
+                  <p className="text-gray-500">Road map not available</p>
                 )}
               </div>
             </div>

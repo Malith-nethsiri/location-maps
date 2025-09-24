@@ -59,7 +59,7 @@ router.post('/geocode', validateRequest(schemas.coordinates), async (req, res, n
 });
 
 // GET /api/location/satellite/:lat/:lng
-// Get satellite imagery for specific coordinates
+// Get road map imagery for specific coordinates
 router.get('/satellite/:lat/:lng', async (req, res, next) => {
   try {
     const latitude = parseFloat(req.params.lat);
@@ -78,7 +78,7 @@ router.get('/satellite/:lat/:lng', async (req, res, next) => {
     const zoom = parseInt(req.query.zoom) || 15;
     const size = req.query.size || '400x400';
 
-    logger.info(`Getting satellite imagery for: ${latitude}, ${longitude}`);
+    logger.info(`Getting road map imagery for: ${latitude}, ${longitude}`);
 
     const satelliteData = await locationService.getSatelliteImagery(
       latitude,
@@ -92,7 +92,7 @@ router.get('/satellite/:lat/:lng', async (req, res, next) => {
     });
 
   } catch (error) {
-    logger.error('Satellite imagery error:', error);
+    logger.error('Map imagery error:', error);
     next(error);
   }
 });
