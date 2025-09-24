@@ -228,10 +228,61 @@ class LocationService {
   // Find multiple nearby cities for access information
   async findNearbyCities(latitude, longitude, maxDistance = 100, limit = 5) {
     try {
-      const result = await query(
+      // First, try the new function
+      let result = await query(
         'SELECT * FROM find_nearby_cities($1, $2, $3, $4)',
         [latitude, longitude, maxDistance, limit]
       );
+
+      // If function doesn't exist or no results, fallback to basic query
+      if (!result || result.rows.length === 0) {
+        logger.warn('find_nearby_cities function failed, using fallback query');
+
+        // Ensure Sri Lankan cities exist
+        await this.ensureSriLankanCities();
+
+        // Use basic SQL with Haversine formula
+        result = await query(`
+          SELECT
+            name as city_name,
+            country,
+            state,
+            latitude,
+            longitude,
+            ROUND(
+              CAST(
+                6371 * acos(
+                  cos(radians($1)) *
+                  cos(radians(latitude)) *
+                  cos(radians(longitude) - radians($2)) +
+                  sin(radians($1)) *
+                  sin(radians(latitude))
+                ) AS DECIMAL
+              ), 2
+            ) as distance_km,
+            population
+          FROM cities
+          WHERE (
+            6371 * acos(
+              cos(radians($1)) *
+              cos(radians(latitude)) *
+              cos(radians(longitude) - radians($2)) +
+              sin(radians($1)) *
+              sin(radians(latitude))
+            )
+          ) <= $3
+          ORDER BY (
+            6371 * acos(
+              cos(radians($1)) *
+              cos(radians(latitude)) *
+              cos(radians(longitude) - radians($2)) +
+              sin(radians($1)) *
+              sin(radians(latitude))
+            )
+          )
+          LIMIT $4
+        `, [latitude, longitude, maxDistance, limit]);
+      }
 
       if (result.rows.length === 0) {
         return [];
@@ -252,6 +303,38 @@ class LocationService {
     } catch (error) {
       logger.error('Find nearby cities error:', error);
       return []; // Return empty array on error instead of failing
+    }
+  }
+
+  // Ensure Sri Lankan cities exist in database (fallback)
+  async ensureSriLankanCities() {
+    try {
+      const sriLankanCities = [
+        {name: 'Colombo', country: 'Sri Lanka', state: 'Western Province', latitude: 6.9271, longitude: 79.8612, population: 752993},
+        {name: 'Kandy', country: 'Sri Lanka', state: 'Central Province', latitude: 7.2906, longitude: 80.6337, population: 125351},
+        {name: 'Galle', country: 'Sri Lanka', state: 'Southern Province', latitude: 6.0535, longitude: 80.2210, population: 99478},
+        {name: 'Negombo', country: 'Sri Lanka', state: 'Western Province', latitude: 7.2083, longitude: 79.8358, population: 142136},
+        {name: 'Jaffna', country: 'Sri Lanka', state: 'Northern Province', latitude: 9.6615, longitude: 80.0255, population: 88138}
+      ];
+
+      for (const city of sriLankanCities) {
+        // Check if city already exists
+        const existingCity = await query(
+          'SELECT id FROM cities WHERE name = $1 AND country = $2',
+          [city.name, city.country]
+        );
+
+        if (existingCity.rows.length === 0) {
+          await query(`
+            INSERT INTO cities (name, country, state, latitude, longitude, population, is_major_city, timezone)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          `, [city.name, city.country, city.state, city.latitude, city.longitude, city.population, true, 'Asia/Colombo']);
+        }
+      }
+
+      logger.info('Sri Lankan cities ensured in database');
+    } catch (error) {
+      logger.error('Failed to ensure Sri Lankan cities:', error);
     }
   }
 
