@@ -18,21 +18,55 @@ class LocationService {
       const startTime = Date.now();
 
       // Parallel execution of all location analysis tasks
-      const [geocodeResult, nearestCity, pois, satelliteImagery] = await Promise.all([
+      const [geocodeResult, nearestCity, nearbyCities, pois, satelliteImagery] = await Promise.all([
         this.reverseGeocode(latitude, longitude),
         this.findNearestCity(latitude, longitude),
+        this.findNearbyCities(latitude, longitude, 100, 5), // Find up to 5 cities within 100km
         this.searchNearbyPOIs(latitude, longitude, radius, includeCategories),
         this.getSatelliteImagery(latitude, longitude)
       ]);
 
-      // Get directions from nearest city if found
+      // Get directions from multiple nearby cities
+      const directionsFromCities = [];
+      if (nearbyCities && nearbyCities.length > 0) {
+        try {
+          const navigationService = require('./navigationService');
+          const navService = new navigationService();
+
+          // Get directions from each nearby city in parallel
+          const directionsPromises = nearbyCities.map(async (city) => {
+            try {
+              const directions = await navService.getDirections({
+                origin: { latitude: city.coordinates.latitude, longitude: city.coordinates.longitude },
+                destination: { latitude, longitude },
+                travelMode: 'DRIVE'
+              });
+
+              return {
+                city: city,
+                directions: directions
+              };
+            } catch (error) {
+              logger.warn(`Could not get directions from ${city.name}:`, error.message);
+              return null;
+            }
+          });
+
+          const directionsResults = await Promise.all(directionsPromises);
+          directionsFromCities.push(...directionsResults.filter(result => result !== null));
+        } catch (error) {
+          logger.warn('Could not get directions from nearby cities:', error.message);
+        }
+      }
+
+      // Keep single nearest city direction for backward compatibility
       let directionsFromCity = null;
-      if (nearestCity && nearestCity.latitude && nearestCity.longitude) {
+      if (nearestCity && nearestCity.coordinates) {
         try {
           const navigationService = require('./navigationService');
           const navService = new navigationService();
           directionsFromCity = await navService.getDirections({
-            origin: { latitude: nearestCity.latitude, longitude: nearestCity.longitude },
+            origin: { latitude: nearestCity.coordinates.latitude, longitude: nearestCity.coordinates.longitude },
             destination: { latitude, longitude },
             travelMode: 'DRIVE'
           });
@@ -58,7 +92,9 @@ class LocationService {
         coordinates: { latitude, longitude },
         address: geocodeResult,
         nearest_city: nearestCity,
-        directions_from_city: directionsFromCity,
+        nearby_cities: nearbyCities,
+        directions_from_city: directionsFromCity, // Keep for backward compatibility
+        directions_from_cities: directionsFromCities, // New: multiple cities directions
         points_of_interest: pois,
         map_imagery: satelliteImagery,
         search_radius: radius,
@@ -186,6 +222,36 @@ class LocationService {
     } catch (error) {
       logger.error('Find nearest city error:', error);
       throw new Error('Failed to find nearest city');
+    }
+  }
+
+  // Find multiple nearby cities for access information
+  async findNearbyCities(latitude, longitude, maxDistance = 100, limit = 5) {
+    try {
+      const result = await query(
+        'SELECT * FROM find_nearby_cities($1, $2, $3, $4)',
+        [latitude, longitude, maxDistance, limit]
+      );
+
+      if (result.rows.length === 0) {
+        return [];
+      }
+
+      return result.rows.map(city => ({
+        name: city.city_name,
+        country: city.country,
+        state: city.state,
+        coordinates: {
+          latitude: parseFloat(city.latitude),
+          longitude: parseFloat(city.longitude)
+        },
+        distance_km: parseFloat(city.distance_km),
+        population: city.population
+      }));
+
+    } catch (error) {
+      logger.error('Find nearby cities error:', error);
+      return []; // Return empty array on error instead of failing
     }
   }
 

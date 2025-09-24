@@ -177,8 +177,91 @@ const LocationResults: React.FC<LocationResultsProps> = ({
           </div>
         )}
 
-        {/* How to Get Here - Directions from Nearest City */}
-        {analysis.directions_from_city && (
+        {/* How to Get Here - Multiple Cities Directions */}
+        {analysis.directions_from_cities && analysis.directions_from_cities.length > 0 && (
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg mx-4 my-4">
+            <div className="p-4">
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="bg-blue-600 text-white p-2 rounded-full">
+                    <Route size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">How to Get Here</h2>
+                    <p className="text-sm text-gray-600">Choose from {analysis.directions_from_cities.length} nearby cities</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {analysis.directions_from_cities.map((cityDirection, index) => (
+                  <div key={`city-${index}`} className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <button
+                      onClick={() => toggleSection(`city-${index}`)}
+                      className="w-full p-4 flex items-center justify-between hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="text-left">
+                          <h3 className="font-semibold text-gray-800 text-lg">
+                            📍 From {cityDirection.city.name}
+                          </h3>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              📏 {cityDirection.directions.distance.text}
+                            </span>
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                              ⏱️ {cityDirection.directions.duration.text}
+                            </span>
+                            <span className="text-gray-500">
+                              {cityDirection.city.distance_km} km away
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {isExpanded(`city-${index}`) ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </button>
+
+                    {isExpanded(`city-${index}`) && (
+                      <div className="border-t border-gray-100 p-4">
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-gray-700 flex items-center gap-2">
+                            <Navigation size={16} className="text-blue-600" />
+                            Turn-by-turn directions
+                          </h4>
+                          {cityDirection.directions.steps.map((step, stepIndex) => (
+                            <div key={stepIndex} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                              <div className="flex-shrink-0 w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                {step.step_number || stepIndex + 1}
+                              </div>
+                              <div className="flex-grow">
+                                <div className="text-gray-800 text-sm mb-1" dangerouslySetInnerHTML={{ __html: step.instruction }} />
+                                {step.distance && (
+                                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <span className="bg-gray-100 px-2 py-1 rounded">
+                                      📏 {step.distance.text}
+                                    </span>
+                                    {step.duration && (
+                                      <span className="bg-gray-100 px-2 py-1 rounded">
+                                        ⏱️ {step.duration.text}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fallback: Single City Directions (for backward compatibility) */}
+        {analysis.directions_from_city && (!analysis.directions_from_cities || analysis.directions_from_cities.length === 0) && (
           <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg mx-4 my-4">
             <div className="p-4">
               <button
@@ -199,7 +282,6 @@ const LocationResults: React.FC<LocationResultsProps> = ({
 
               {isExpanded('directions') && (
                 <div className="mt-6 border-t pt-4">
-                  {/* Trip Summary */}
                   <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="text-center">
@@ -213,7 +295,6 @@ const LocationResults: React.FC<LocationResultsProps> = ({
                     </div>
                   </div>
 
-                  {/* Step-by-step directions */}
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                       <Navigation size={18} className="text-blue-600" />

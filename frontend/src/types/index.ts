@@ -98,6 +98,12 @@ export interface NearestCity {
   timezone?: string;
 }
 
+// Multiple Cities with Directions
+export interface CityWithDirections {
+  city: NearestCity;
+  directions: Route;
+}
+
 // Map Imagery Types (roadmap view)
 export interface MapImagery {
   image_url: string;
@@ -121,7 +127,9 @@ export interface LocationAnalysis {
   coordinates: Coordinates;
   address: LocationAddress;
   nearest_city: NearestCity | null;
+  nearby_cities: NearestCity[]; // New: list of nearby cities
   directions_from_city: Route | null;
+  directions_from_cities: CityWithDirections[]; // New: directions from multiple cities
   points_of_interest: POI[];
   map_imagery: MapImagery;
   satellite_imagery?: SatelliteImagery; // Backward compatibility

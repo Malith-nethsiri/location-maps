@@ -196,3 +196,57 @@ BEGIN
     LIMIT 1;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Create function to find multiple nearby cities for access information
+CREATE OR REPLACE FUNCTION find_nearby_cities(target_lat DECIMAL, target_lng DECIMAL, max_distance_km INTEGER DEFAULT 100, limit_count INTEGER DEFAULT 5)
+RETURNS TABLE (
+    city_name VARCHAR,
+    country VARCHAR,
+    state VARCHAR,
+    latitude DECIMAL,
+    longitude DECIMAL,
+    distance_km DECIMAL,
+    population INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.name,
+        c.country,
+        c.state,
+        c.latitude,
+        c.longitude,
+        ROUND(
+            CAST(
+                6371 * acos(
+                    cos(radians(target_lat)) *
+                    cos(radians(c.latitude)) *
+                    cos(radians(c.longitude) - radians(target_lng)) +
+                    sin(radians(target_lat)) *
+                    sin(radians(c.latitude))
+                ) AS DECIMAL
+            ), 2
+        ) as distance_km,
+        c.population
+    FROM cities c
+    WHERE (
+        6371 * acos(
+            cos(radians(target_lat)) *
+            cos(radians(c.latitude)) *
+            cos(radians(c.longitude) - radians(target_lng)) +
+            sin(radians(target_lat)) *
+            sin(radians(c.latitude))
+        )
+    ) <= max_distance_km
+    ORDER BY (
+        6371 * acos(
+            cos(radians(target_lat)) *
+            cos(radians(c.latitude)) *
+            cos(radians(c.longitude) - radians(target_lng)) +
+            sin(radians(target_lat)) *
+            sin(radians(c.latitude))
+        )
+    )
+    LIMIT limit_count;
+END;
+$$ LANGUAGE plpgsql;
