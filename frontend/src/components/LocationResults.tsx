@@ -177,51 +177,76 @@ const LocationResults: React.FC<LocationResultsProps> = ({
           </div>
         )}
 
-        {/* Directions from Nearest City */}
+        {/* How to Get Here - Directions from Nearest City */}
         {analysis.directions_from_city && (
-          <div className="p-4 border-b">
-            <button
-              onClick={() => toggleSection('directions')}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <div className="flex items-center gap-2">
-                <Route className="text-green-600" size={20} />
-                <h3 className="font-semibold">Directions from {analysis.nearest_city?.name}</h3>
-              </div>
-              {isExpanded('directions') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg mx-4 my-4">
+            <div className="p-4">
+              <button
+                onClick={() => toggleSection('directions')}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-600 text-white p-2 rounded-full">
+                    <Route size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">How to Get Here</h2>
+                    <p className="text-sm text-gray-600">Directions from {analysis.nearest_city?.name}</p>
+                  </div>
+                </div>
+                {isExpanded('directions') ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+              </button>
 
-            {isExpanded('directions') && (
-              <div className="mt-3">
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-gray-600">
-                      <p><strong>Distance:</strong> {analysis.directions_from_city.distance.text}</p>
-                      <p><strong>Duration:</strong> {analysis.directions_from_city.duration.text}</p>
+              {isExpanded('directions') && (
+                <div className="mt-6 border-t pt-4">
+                  {/* Trip Summary */}
+                  <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">{analysis.directions_from_city.distance.text}</div>
+                        <div className="text-sm text-gray-600">Total Distance</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{analysis.directions_from_city.duration.text}</div>
+                        <div className="text-sm text-gray-600">Estimated Time</div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-gray-700 mb-2">Turn-by-turn directions:</h4>
-                    {analysis.directions_from_city.steps.map((step, index) => (
-                      <div key={index} className="flex items-start gap-3 p-2 bg-white rounded border-l-4 border-green-400">
-                        <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-medium">
-                          {step.step_number}
-                        </span>
-                        <div className="flex-grow">
-                          <p className="text-sm text-gray-800" dangerouslySetInnerHTML={{ __html: step.instruction }} />
-                          {step.distance && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {step.distance.text} • {step.duration?.text}
-                            </p>
-                          )}
+                  {/* Step-by-step directions */}
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Navigation size={18} className="text-blue-600" />
+                      Step-by-Step Directions
+                    </h3>
+                    <div className="space-y-3">
+                      {analysis.directions_from_city.steps.map((step, index) => (
+                        <div key={index} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                            {step.step_number || index + 1}
+                          </div>
+                          <div className="flex-grow">
+                            <div className="text-gray-800 font-medium mb-1" dangerouslySetInnerHTML={{ __html: step.instruction }} />
+                            {step.distance && (
+                              <div className="flex items-center gap-3 text-sm text-gray-500">
+                                <span className="bg-gray-100 px-2 py-1 rounded">
+                                  📏 {step.distance.text}
+                                </span>
+                                {step.duration && (
+                                  <span className="bg-gray-100 px-2 py-1 rounded">
+                                    ⏱️ {step.duration.text}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 

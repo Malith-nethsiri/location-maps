@@ -121,10 +121,10 @@ class LocationService {
     }
   }
 
-  // Get map imagery for coordinates (road view with close zoom)
+  // Get map imagery for coordinates (road view with labels and context)
   async getSatelliteImagery(latitude, longitude, options = {}) {
     try {
-      const { zoom = 18, size = '600x400', maptype = 'roadmap' } = options;
+      const { zoom = 14, size = '600x400', maptype = 'roadmap' } = options;
 
       const url = 'https://maps.googleapis.com/maps/api/staticmap';
       const params = {
@@ -132,7 +132,10 @@ class LocationService {
         zoom,
         size,
         maptype,
-        markers: `color:red|${latitude},${longitude}`,
+        markers: `color:red|label:📍|${latitude},${longitude}`,
+        format: 'png',
+        language: 'en',
+        region: 'US',
         key: this.googleApiKey
       };
 

@@ -75,8 +75,8 @@ router.get('/satellite/:lat/:lng', async (req, res, next) => {
       });
     }
 
-    const zoom = parseInt(req.query.zoom) || 15;
-    const size = req.query.size || '400x400';
+    const zoom = parseInt(req.query.zoom) || 14;
+    const size = req.query.size || '600x400';
 
     logger.info(`Getting road map imagery for: ${latitude}, ${longitude}`);
 
