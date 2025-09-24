@@ -361,7 +361,7 @@ const LocationResults: React.FC<LocationResultsProps> = ({
                 {(analysis.map_imagery || analysis.satellite_imagery) ? (
                   <div>
                     <img
-                      src={(analysis.map_imagery || analysis.satellite_imagery)?.image_url}
+                      src={(analysis.map_imagery || analysis.satellite_imagery)!.image_url}
                       alt="Road map view"
                       className="mx-auto rounded-lg shadow-md max-w-full h-auto"
                       style={{ maxHeight: '400px' }}

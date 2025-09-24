@@ -124,6 +124,7 @@ export interface LocationAnalysis {
   directions_from_city: Route | null;
   points_of_interest: POI[];
   map_imagery: MapImagery;
+  satellite_imagery?: SatelliteImagery; // Backward compatibility
   search_radius: number;
   total_pois_found: number;
   response_time_ms: number;
