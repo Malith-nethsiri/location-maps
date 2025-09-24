@@ -349,7 +349,6 @@ router.post('/debug-nearby-cities', async (req, res, next) => {
     const { latitude = 7.057203, longitude = 80.176836, maxDistance = 100, limit = 5 } = req.body;
 
     const locationService = require('../services/locationService');
-    const service = new locationService();
 
     const debugResults = {};
 
@@ -441,7 +440,7 @@ router.post('/debug-nearby-cities', async (req, res, next) => {
 
     // Step 6: Test the actual service method
     try {
-      const serviceResult = await service.findNearbyCities(latitude, longitude, maxDistance, limit);
+      const serviceResult = await locationService.findNearbyCities(latitude, longitude, maxDistance, limit);
       debugResults.service_method = {
         success: true,
         result: serviceResult,
