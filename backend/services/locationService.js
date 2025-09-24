@@ -18,6 +18,8 @@ class LocationService {
       const startTime = Date.now();
 
       // Parallel execution of all location analysis tasks
+      logger.info(`DEBUG ANALYZE: Starting parallel tasks for ${latitude}, ${longitude}`);
+
       const [geocodeResult, nearestCity, nearbyCities, pois, satelliteImagery] = await Promise.all([
         this.reverseGeocode(latitude, longitude),
         this.findNearestCity(latitude, longitude),
@@ -25,6 +27,10 @@ class LocationService {
         this.searchNearbyPOIs(latitude, longitude, radius, includeCategories),
         this.getSatelliteImagery(latitude, longitude)
       ]);
+
+      logger.info(`DEBUG ANALYZE: Parallel tasks completed`);
+      logger.info(`DEBUG ANALYZE: nearbyCities result: ${JSON.stringify(nearbyCities)}`);
+      logger.info(`DEBUG ANALYZE: nearbyCities length: ${nearbyCities ? nearbyCities.length : 'null'}`);
 
       // Get directions from multiple nearby cities
       const directionsFromCities = [];
@@ -87,6 +93,8 @@ class LocationService {
         responseData: { geocodeResult, nearestCity, pois: pois.length },
         responseTimeMs: responseTime
       });
+
+      logger.info(`DEBUG ANALYZE: Final return - nearby_cities count: ${nearbyCities ? nearbyCities.length : 'null'}, directions_from_cities count: ${directionsFromCities.length}`);
 
       return {
         coordinates: { latitude, longitude },
