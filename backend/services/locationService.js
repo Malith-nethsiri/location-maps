@@ -37,12 +37,11 @@ class LocationService {
       if (nearbyCities && nearbyCities.length > 0) {
         try {
           const navigationService = require('./navigationService');
-          const navService = new navigationService();
 
           // Get directions from each nearby city in parallel
           const directionsPromises = nearbyCities.map(async (city) => {
             try {
-              const directions = await navService.getDirections({
+              const directions = await navigationService.getDirections({
                 origin: { latitude: city.coordinates.latitude, longitude: city.coordinates.longitude },
                 destination: { latitude, longitude },
                 travelMode: 'DRIVE'
@@ -70,8 +69,7 @@ class LocationService {
       if (nearestCity && nearestCity.coordinates) {
         try {
           const navigationService = require('./navigationService');
-          const navService = new navigationService();
-          directionsFromCity = await navService.getDirections({
+          directionsFromCity = await navigationService.getDirections({
             origin: { latitude: nearestCity.coordinates.latitude, longitude: nearestCity.coordinates.longitude },
             destination: { latitude, longitude },
             travelMode: 'DRIVE'
