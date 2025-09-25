@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { validateRequest, schemas } = require('../middleware/validateRequest');
-const locationService = require('../services/optimizedLocationService');
+const locationService = require('../services/hybridLocationService');
 const { query } = require('../config/database');
 const logger = require('../utils/logger');
 
