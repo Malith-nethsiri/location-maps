@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { validateRequest, schemas } = require('../middleware/validateRequest');
-const locationService = require('../services/locationService');
+const locationService = require('../services/optimizedLocationService');
 const { query } = require('../config/database');
 const logger = require('../utils/logger');
 
@@ -348,7 +348,7 @@ router.post('/debug-nearby-cities', async (req, res, next) => {
   try {
     const { latitude = 7.057203, longitude = 80.176836, maxDistance = 100, limit = 5 } = req.body;
 
-    const locationService = require('../services/locationService');
+    const locationService = require('../services/optimizedLocationService');
 
     const debugResults = {};
 

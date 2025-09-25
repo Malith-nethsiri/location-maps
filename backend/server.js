@@ -52,6 +52,8 @@ app.use(cors({
     // Check specific allowed origins
     const allowedOrigins = [
       'https://location-maps-pi.vercel.app',
+      'https://location-intelligence-app.vercel.app',
+      'https://location-intelligence-frontend.vercel.app',
       process.env.CORS_ORIGIN
     ].filter(Boolean);
 
