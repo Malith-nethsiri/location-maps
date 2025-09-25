@@ -54,6 +54,8 @@ app.use(cors({
       'https://location-maps-pi.vercel.app',
       'https://location-intelligence-app.vercel.app',
       'https://location-intelligence-frontend.vercel.app',
+      'https://valuerpro.online',
+      'https://www.valuerpro.online',
       process.env.CORS_ORIGIN
     ].filter(Boolean);
 
