@@ -139,7 +139,7 @@ const LocationResults: React.FC<LocationResultsProps> = ({
               onClick={() => toggleSection('nearest_city')}
               className="flex items-center justify-between w-full text-left"
             >
-              <h3 className="text-lg font-semibold text-gray-800">Nearest Major City</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Nearest City</h3>
               {isExpanded('nearest_city') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
 

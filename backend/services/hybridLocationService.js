@@ -248,7 +248,7 @@ class HybridLocationService {
 
       logger.info(`HYBRID: Getting directions from ${finalCities.length} cities: ${finalCities.map(c => c.name).join(', ')}`);
 
-      const navigationService = require('./navigationService');
+      const navigationService = require('./robustNavigationService');
       const directionsPromises = finalCities.map(async (city) => {
         try {
           const directions = await navigationService.getDirections({
