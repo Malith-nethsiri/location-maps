@@ -1,10 +1,15 @@
 {
   "version": 2,
   "name": "valuerpro-frontend",
-  "buildCommand": "cd frontend && npm run build",
+  "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/build",
-  "installCommand": "cd frontend && npm install",
+  "installCommand": null,
   "framework": "create-react-app",
+  "functions": {
+    "frontend/src/**": {
+      "runtime": "@vercel/static-build"
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
