@@ -5,17 +5,22 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const logger = require('./utils/logger');
 
 // Import route handlers
+const authRoutes = require('./routes/auth');
 const locationRoutes = require('./routes/location');
 const poiRoutes = require('./routes/poi');
 const navigationRoutes = require('./routes/navigation');
 const healthRoutes = require('./routes/health');
+const reportsRoutes = require('./routes/reports');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const validateRequest = require('./middleware/validateRequest');
+const SecurityMiddleware = require('./middleware/security');
+const monitoringService = require('./services/monitoringService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,89 +30,65 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
-}));
+// Enhanced security middleware
+app.use(SecurityMiddleware.setupSecurityHeaders());
+app.use(SecurityMiddleware.setupCORS());
+app.use(SecurityMiddleware.createSecurityLogger());
 
-// CORS configuration
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, postman, etc.)
-    if (!origin) return callback(null, true);
+// Request monitoring and tracking
+app.use(monitoringService.trackRequest.bind(monitoringService));
 
-    const allowedPatterns = [
-      /^http:\/\/localhost:(3000|3001)$/,
-      /^https:\/\/location-maps.*\.vercel\.app$/,
-      /^https:\/\/.*-malith-vihangas-projects\.vercel\.app$/,
-    ];
+// Request sanitization
+app.use(SecurityMiddleware.sanitizeRequest);
 
-    // Check specific allowed origins
-    const allowedOrigins = [
-      'https://location-maps-pi.vercel.app',
-      'https://location-intelligence-app.vercel.app',
-      'https://location-intelligence-frontend.vercel.app',
-      'https://valuerpro.online',
-      'https://www.valuerpro.online',
-      process.env.CORS_ORIGIN
-    ].filter(Boolean);
-
-    // Remove trailing slashes for comparison
-    const normalizedOrigin = origin.replace(/\/$/, '');
-
-    // Check exact matches first
-    if (allowedOrigins.some(allowed => normalizedOrigin === allowed.replace(/\/$/, ''))) {
-      return callback(null, true);
-    }
-
-    // Check pattern matches
-    if (allowedPatterns.some(pattern => pattern.test(normalizedOrigin))) {
-      return callback(null, true);
-    }
-
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-}));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use('/api/', limiter);
+// Rate limiting with different tiers
+app.use('/api/', SecurityMiddleware.createRateLimiter());
+app.use('/api/reports/enhance-content', SecurityMiddleware.createAIRateLimiter());
+app.use('/api/health/metrics', SecurityMiddleware.createStrictRateLimiter());
+app.use('/api/health/alerts', SecurityMiddleware.createStrictRateLimiter());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Static file serving for uploaded images
+app.use('/uploads', express.static('uploads'));
 
 // Compression middleware
 app.use(compression());
 
-// Logging middleware
-if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan('combined', {
-    stream: {
-      write: (message) => logger.info(message.trim())
+// Additional middleware for enhanced security
+app.use('/api/reports', SecurityMiddleware.validateSriLankanBounds);
+
+// Log monitoring metrics for audit trail
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    // Log sensitive operations for audit
+    if (req.method !== 'GET' && req.user?.id) {
+      monitoringService.logAudit(
+        `${req.method} ${req.path}`,
+        req.user.id,
+        {
+          path: req.path,
+          method: req.method,
+          statusCode: res.statusCode,
+          ip: req.ip,
+          userAgent: req.get('User-Agent')
+        }
+      );
     }
-  }));
-}
+  });
+  next();
+});
 
 // API Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/poi', poiRoutes);
 app.use('/api/navigation', navigationRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

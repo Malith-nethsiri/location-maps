@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
@@ -16,6 +17,7 @@ import LocationResults from '../components/LocationResults';
 import MapComponent from '../components/MapComponent';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedLocation, setSelectedLocation] = useState<Coordinates | null>(null);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
   const [mapPolylines, setMapPolylines] = useState<MapPolyline[]>([]);
@@ -180,6 +182,25 @@ const HomePage: React.FC = () => {
     toast.info('All data cleared');
   };
 
+  const handleGenerateReport = useCallback(() => {
+    if (!locationAnalysis) {
+      toast.error('Please complete location analysis first');
+      return;
+    }
+
+    // Navigate to reports page with location data
+    const reportData = {
+      coordinates: locationAnalysis.coordinates,
+      location_analysis: locationAnalysis
+    };
+
+    // Store data in sessionStorage for the reports page to pick up
+    sessionStorage.setItem('location_report_data', JSON.stringify(reportData));
+
+    navigate('/reports/create-from-location');
+    toast.success('Redirecting to create valuation report...');
+  }, [locationAnalysis, navigate]);
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -191,6 +212,12 @@ const HomePage: React.FC = () => {
               <p className="text-sm text-gray-600">Analyze GPS coordinates, find POIs, and get navigation</p>
             </div>
             <div className="flex items-center gap-4">
+              <Link
+                to="/reports"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
+              >
+                Valuation Reports
+              </Link>
               <button
                 onClick={() => setSatelliteView(!satelliteView)}
                 className={`px-4 py-2 rounded-md transition-colors ${
@@ -227,11 +254,40 @@ const HomePage: React.FC = () => {
 
             {/* Location Results */}
             {locationAnalysis && (
-              <LocationResults
-                analysis={locationAnalysis}
-                onNavigateToLocation={handleNavigationRequest}
-                onShowPOIDetails={handleShowPOIDetails}
-              />
+              <>
+                <LocationResults
+                  analysis={locationAnalysis}
+                  onNavigateToLocation={handleNavigationRequest}
+                  onShowPOIDetails={handleShowPOIDetails}
+                />
+
+                {/* Generate Valuation Report Button */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-green-800 mb-2">
+                        Create Valuation Report
+                      </h3>
+                      <p className="text-sm text-green-700">
+                        Use this location analysis to create a professional property valuation report
+                        with AI-enhanced content generation.
+                      </p>
+                      <ul className="text-xs text-green-600 mt-2 space-y-1">
+                        <li>• Auto-filled location and route descriptions</li>
+                        <li>• Market analysis from nearby facilities</li>
+                        <li>• Professional Sri Lankan valuation format</li>
+                        <li>• Cost: ~$0.02 per report with AI enhancement</li>
+                      </ul>
+                    </div>
+                    <button
+                      onClick={handleGenerateReport}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium whitespace-nowrap"
+                    >
+                      Generate Report →
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
 
             {/* Navigation Results */}

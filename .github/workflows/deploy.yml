@@ -1,88 +1,124 @@
-name: Deploy Application
+name: Deploy ValuerPro
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   NODE_VERSION: '18'
 
 jobs:
-  test:
-    name: Run Tests
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:13-3.1
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: valuerpro_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Setup test database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d valuerpro_test -f database-schema.sql
+        env:
+          PGPASSWORD: postgres
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm test
+        env:
+          NODE_ENV: test
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/valuerpro_test
+          JWT_SECRET: test-secret-for-ci-cd-pipeline-only
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
+  test-frontend:
+    name: Test Frontend
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
-    - name: Install dependencies
-      run: |
-        npm install
-        cd backend && npm install
-        cd ../frontend && npm install
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
 
-    - name: Run backend tests
-      run: cd backend && npm test
-      env:
-        NODE_ENV: test
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+        env:
+          REACT_APP_API_URL: https://test-api.example.com
+          REACT_APP_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
 
-    - name: Run frontend tests
-      run: cd frontend && npm test -- --coverage --watchAll=false
-      env:
-        CI: true
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test -- --coverage --watchAll=false
+        env:
+          CI: true
 
-  deploy-backend:
-    name: Deploy Backend to Railway
-    needs: test
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run security audit
+        run: |
+          cd backend && npm audit --audit-level moderate || true
+          cd ../frontend && npm audit --audit-level moderate || true
+
+  deploy-notification:
+    name: Deployment Notification
+    needs: [test-backend, test-frontend, security-scan]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Deploy to Railway
-      uses: bervProject/railway-deploy@main
-      with:
-        railway_token: ${{ secrets.RAILWAY_TOKEN }}
-        service: 'backend'
-
-  deploy-frontend:
-    name: Deploy Frontend to Vercel
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-
-    - name: Install Vercel CLI
-      run: npm install --global vercel@latest
-
-    - name: Pull Vercel Environment Information
-      run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      working-directory: ./frontend
-
-    - name: Build Project Artifacts
-      run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      working-directory: ./frontend
-
-    - name: Deploy Project Artifacts to Vercel
-      run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-      working-directory: ./frontend
+      - name: Deployment Success
+        run: |
+          echo "✅ ValuerPro tests passed successfully!"
+          echo "🔧 Backend: Ready for Railway auto-deployment"
+          echo "🎨 Frontend: Ready for Vercel auto-deployment"
+          echo "📊 Database: Schema ready for Railway PostgreSQL"
+          echo ""
+          echo "🚀 Deployment will happen automatically when:"
+          echo "   - Railway detects changes in /backend"
+          echo "   - Vercel detects changes in /frontend"
