@@ -2,12 +2,13 @@
   "name": "location-intelligence-app",
   "version": "1.0.0",
   "description": "Comprehensive location intelligence web application with GPS coordinate analysis, POI discovery, navigation, and satellite imagery",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm start",
-    "build": "npm run build:backend && npm run build:frontend",
+    "build": "cd backend && npm install --production",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "test": "npm run test:backend && npm run test:frontend",
@@ -25,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/location-intelligence-app.git"
+    "url": "https://github.com/Malith-nethsiri/location-maps.git"
   },
   "keywords": [
     "location",
@@ -39,9 +40,11 @@
     "react",
     "nodejs",
     "postgresql",
-    "google-maps"
+    "google-maps",
+    "valuation",
+    "sri-lanka"
   ],
-  "author": "Your Name",
+  "author": "Malith Nethsiri",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
@@ -51,7 +54,27 @@
     "npm": ">=9.0.0"
   },
   "dependencies": {
-    "dotenv": "^17.2.2",
-    "pg": "^8.16.3"
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "pg-pool": "^3.6.1",
+    "redis": "^4.6.10",
+    "axios": "^1.6.0",
+    "joi": "^17.11.0",
+    "express-validator": "^7.2.1",
+    "express-rate-limit": "^7.1.5",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0",
+    "winston": "^3.11.0",
+    "openai": "^4.104.0",
+    "puppeteer": "^21.11.0",
+    "multer": "^1.4.5-lts.2",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.7",
+    "uuid": "^9.0.1",
+    "sharp": "^0.32.6"
   }
 }
