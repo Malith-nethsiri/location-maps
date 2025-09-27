@@ -76,7 +76,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ profile, onProfileUpdate, u
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <div className=\"mb-6\">
+      <div className="mb-6">
         <h2 className=\"text-2xl font-bold text-gray-900 mb-2\">Professional Profile Setup</h2>
         <p className=\"text-gray-600\">
           This information will be used to auto-fill your valuation reports, saving you time on every report.
