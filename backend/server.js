@@ -17,7 +17,7 @@ const healthRoutes = require('./routes/health');
 const reportsRoutes = require('./routes/reports');
 
 // Import middleware
-const errorHandler = require('./middleware/errorHandler');
+const { errorHandler } = require('./middleware/errorHandler');
 const { validateRequest } = require('./middleware/validateRequest');
 const SecurityMiddleware = require('./middleware/security');
 const monitoringService = require('./services/monitoringService');
