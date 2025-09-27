@@ -32,4 +32,13 @@ const validateRequest = (schema) => {
   };
 };
 
-module.exports = validateRequest;
+// Dummy schemas for compatibility with existing routes
+const schemas = {
+  locationAnalysis: {},
+  coordinates: {},
+  navigationRequest: {},
+  reportCreation: {},
+  reportUpdate: {}
+};
+
+module.exports = { validateRequest, schemas };

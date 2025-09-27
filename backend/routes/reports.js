@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { body, param, query } = require('express-validator');
-const validateRequest = require('../middleware/validateRequest');
+const { validateRequest } = require('../middleware/validateRequest');
+const { uploadMultiple, uploadByCategory, getFileInfo, optimizeImage } = require('../middleware/upload');
 const reportsService = require('../services/reportsService');
 const aiService = require('../services/aiService');
 const logger = require('../utils/logger');
@@ -530,7 +531,6 @@ router.post('/:id/images', [
   param('id').isInt().withMessage('Report ID must be an integer'),
   validateRequest
 ], async (req, res, next) => {
-  const { uploadMultiple, getFileInfo, optimizeImage } = require('../middleware/upload');
 
   // Apply upload middleware
   uploadMultiple('images', 10)(req, res, async (uploadErr) => {
@@ -596,7 +596,6 @@ router.post('/:id/images/category', [
   param('id').isInt().withMessage('Report ID must be an integer'),
   validateRequest
 ], async (req, res, next) => {
-  const { uploadByCategory, getFileInfo, optimizeImage } = require('../middleware/upload');
 
   // Apply upload middleware
   uploadByCategory()(req, res, async (uploadErr) => {
