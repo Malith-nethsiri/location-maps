@@ -5,24 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'No root build needed - backend handles its own build'",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm start",
-    "build": "cd backend && npm install --production",
-    "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && npm run build",
-    "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "cd backend && npm test",
-    "test:frontend": "cd frontend && npm test",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "clean": "rm -rf node_modules frontend/node_modules backend/node_modules",
-    "db:populate": "railway run node scripts/populate_cities_direct.js",
-    "db:verify": "railway run node scripts/verify_database.js",
-    "db:migrate": "railway run node backend/scripts/migrate.js",
-    "db:deploy": "railway run node scripts/deploy_database.js",
-    "railway:setup": "echo 'Run: npm install -g @railway/cli && railway login && railway link'",
-    "railway:status": "railway status",
-    "railway:logs": "railway logs"
+    "dev:frontend": "cd frontend && npm start"
   },
   "repository": {
     "type": "git",
