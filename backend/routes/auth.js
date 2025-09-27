@@ -9,7 +9,8 @@ const {
     securityHeaders,
     logRequest
 } = require('../middleware/auth');
-const validateRequest = require('../middleware/validateRequest');
+const { handleValidationErrors } = require('../services/validationService');
+const { body } = require('express-validator');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -39,34 +40,27 @@ const emailRateLimit = rateLimit({
     }
 });
 
-// Validation schemas
-const registerSchema = {
-    type: 'object',
-    required: ['email', 'password', 'fullName', 'professionalTitle'],
-    properties: {
-        email: {
-            type: 'string',
-            format: 'email',
-            maxLength: 255
-        },
-        password: {
-            type: 'string',
-            minLength: 8,
-            maxLength: 128
-        },
-        fullName: {
-            type: 'string',
-            minLength: 2,
-            maxLength: 255
-        },
-        professionalTitle: {
-            type: 'string',
-            minLength: 2,
-            maxLength: 255
-        }
-    },
-    additionalProperties: false
-};
+// Validation rules for registration
+const registerValidation = [
+    body('email')
+        .isEmail()
+        .withMessage('Valid email is required')
+        .isLength({ max: 255 })
+        .withMessage('Email must be less than 255 characters'),
+    body('password')
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters')
+        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+        .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
+    body('fullName')
+        .isLength({ min: 2, max: 255 })
+        .withMessage('Full name must be between 2 and 255 characters')
+        .trim(),
+    body('professionalTitle')
+        .isLength({ min: 2, max: 255 })
+        .withMessage('Professional title must be between 2 and 255 characters')
+        .trim()
+];
 
 const loginSchema = {
     type: 'object',
@@ -199,7 +193,7 @@ const profileUpdateSchema = {
 };
 
 // POST /api/auth/register - User registration
-router.post('/register', authRateLimit, validateRequest(registerSchema), async (req, res, next) => {
+router.post('/register', authRateLimit, registerValidation, handleValidationErrors, async (req, res, next) => {
     try {
         const { email, password, fullName, professionalTitle } = req.body;
         const ipAddress = req.ip;
