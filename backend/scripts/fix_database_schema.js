@@ -149,17 +149,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Add indexes for authentication tables
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_uuid ON users(uuid);
-CREATE INDEX IF NOT EXISTS idx_users_email_verified ON users(email_verified);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_completed ON user_profiles(profile_completed);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_user_activity_user_id ON user_activity_log(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_activity_created_at ON user_activity_log(created_at);
+-- Add indexes for authentication tables (only if columns exist)
+DO $$
+BEGIN
+    -- Check if users table exists and has email column
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'email') THEN
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'uuid') THEN
+        CREATE INDEX IF NOT EXISTS idx_users_uuid ON users(uuid);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'email_verified') THEN
+        CREATE INDEX IF NOT EXISTS idx_users_email_verified ON users(email_verified);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'user_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'profile_completed') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_profiles_completed ON user_profiles(profile_completed);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_sessions' AND column_name = 'user_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_sessions' AND column_name = 'session_token') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_sessions' AND column_name = 'expires_at') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_activity_log' AND column_name = 'user_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_activity_user_id ON user_activity_log(user_id);
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_activity_log' AND column_name = 'created_at') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_activity_created_at ON user_activity_log(created_at);
+    END IF;
+END $$;
 
 -- Add missing indexes (without PostGIS spatial indexes for now)
 CREATE INDEX IF NOT EXISTS idx_cities_district ON cities (district);
@@ -176,18 +209,25 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Apply update triggers to authentication tables
-DROP TRIGGER IF EXISTS update_users_updated_at ON users;
-CREATE TRIGGER update_users_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- Apply update triggers to authentication tables (only if tables exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users') THEN
+        DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+        CREATE TRIGGER update_users_updated_at
+            BEFORE UPDATE ON users
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
 
-DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
-CREATE TRIGGER update_user_profiles_updated_at
-    BEFORE UPDATE ON user_profiles
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_profiles') THEN
+        DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+        CREATE TRIGGER update_user_profiles_updated_at
+            BEFORE UPDATE ON user_profiles
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 `;
 
 async function fixDatabaseSchema() {
