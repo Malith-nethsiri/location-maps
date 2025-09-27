@@ -1,53 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useAuth } from '../contexts/AuthContext';
 import ReportsList from '../components/reports/ReportsList';
 import ReportBuilder from '../components/reports/ReportBuilder';
 import ProfileSetup from '../components/reports/ProfileSetup';
 import { reportsApi } from '../services/reportsApi';
-import { UserProfile, ValuationReport } from '../types/reports';
+import { UserProfile as ReportsUserProfile, ValuationReport } from '../types/reports';
+import { UserProfile as AuthUserProfile } from '../contexts/AuthContext';
+
+// Helper function to convert AuthUserProfile to ReportsUserProfile
+const convertAuthProfileToReportsProfile = (authProfile: AuthUserProfile | null | undefined, userId: string): ReportsUserProfile | null => {
+  if (!authProfile) return null;
+
+  return {
+    id: authProfile.id,
+    user_id: userId,
+    honorable: authProfile.honorable,
+    full_name: authProfile.full_name,
+    professional_title: authProfile.professional_title,
+    qualifications_list: authProfile.qualifications,
+    professional_status: authProfile.professional_status,
+    house_number: authProfile.house_number,
+    street_name: authProfile.street_name,
+    area_name: authProfile.area_name,
+    city: authProfile.city,
+    district: authProfile.district,
+    phone_number: authProfile.telephone,
+    mobile_number: authProfile.mobile,
+    email_address: authProfile.email_address,
+    ivsl_registration: authProfile.ivsl_registration
+  };
+};
 
 const ReportsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const { state } = useAuth();
   const [reports, setReports] = useState<ValuationReport[]>([]);
 
-  // Mock user ID - in real app would come from authentication
-  const userId = 'user_123';
-
-  useEffect(() => {
-    loadUserProfile();
-  }, []);
-
-  const loadUserProfile = async () => {
-    try {
-      setIsLoadingProfile(true);
-      const profile = await reportsApi.getUserProfile(userId);
-      setUserProfile(profile);
-    } catch (error: any) {
-      console.error('Error loading profile:', error);
-      toast.error('Failed to load user profile');
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  };
+  // Get authenticated user data directly from AuthContext
+  const userId = state.user?.uuid || state.user?.id?.toString() || '';
+  const authProfile = state.user?.profile;
+  const userProfile = convertAuthProfileToReportsProfile(authProfile, userId);
+  const isLoadingProfile = !state.initialized;
 
   const createNewReport = async (reportData?: any) => {
-    try {
-      const newReport = await reportsApi.createReport({
-        user_id: userId,
-        report_type: reportData?.report_type || 'fair_value',
-        coordinates: reportData?.coordinates,
-        valuation_purpose: reportData?.valuation_purpose || 'Property assessment for client evaluation'
-      });
-
-      toast.success('New report created successfully!');
-      navigate(`/reports/builder/${newReport.id}`);
-    } catch (error: any) {
-      console.error('Error creating report:', error);
-      toast.error('Failed to create new report');
-    }
+    // Navigate directly to new report builder with GPS input
+    navigate('/reports/new');
   };
 
   if (isLoadingProfile) {
@@ -68,7 +67,10 @@ const ReportsPage: React.FC = () => {
         <div className="max-w-4xl mx-auto py-8">
           <ProfileSetup
             profile={userProfile}
-            onProfileUpdate={setUserProfile}
+            onProfileUpdate={() => {
+              // Profile updates will be handled by AuthContext refresh
+              toast.success('Profile updated successfully');
+            }}
             userId={userId}
           />
         </div>
@@ -83,17 +85,17 @@ const ReportsPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-8">
-              <Link to="/" className="text-blue-600 hover:text-blue-800 font-medium">
-                ← Location Analysis
+              <Link to="/dashboard" className="text-blue-600 hover:text-blue-800 font-medium">
+                ← Dashboard
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Valuation Reports</h1>
-                <p className="text-sm text-gray-600">Professional property valuation reports with AI assistance</p>
+                <p className="text-sm text-gray-600">Professional property valuation reports with integrated location intelligence</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                Welcome, {userProfile.honorable} {userProfile.full_name}
+                Welcome, {userProfile?.honorable} {userProfile?.full_name}
               </span>
               <Link
                 to="/reports/profile"
@@ -147,28 +149,27 @@ const ReportsPage: React.FC = () => {
             element={
               <ProfileSetup
                 profile={userProfile}
-                onProfileUpdate={setUserProfile}
+                onProfileUpdate={() => {
+                  // Profile updates will be handled by AuthContext refresh
+                  toast.success('Profile updated successfully');
+                }}
                 userId={userId}
               />
             }
           />
 
-          {/* Create from Location Analysis */}
+          {/* New Report with GPS Input */}
           <Route
-            path="/create-from-location"
+            path="/new"
             element={
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-lg font-semibold mb-4">Create Report from Location Analysis</h2>
-                <p className="text-gray-600 mb-4">
-                  This feature allows you to create a valuation report using data from your recent location analysis.
-                </p>
-                <button
-                  onClick={() => navigate('/')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Go to Location Analysis
-                </button>
-              </div>
+              <ReportBuilder
+                userProfile={userProfile}
+                isNewReport={true}
+                onReportUpdate={(report) => {
+                  console.log('New report created:', report);
+                  navigate('/reports');
+                }}
+              />
             }
           />
         </Routes>

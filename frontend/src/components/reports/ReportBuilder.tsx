@@ -1,30 +1,124 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { reportsApi } from '../../services/reportsApi';
 import { UserProfile, ValuationReport } from '../../types/reports';
+import { useLocationAnalysis } from '../../hooks/useLocationAnalysis';
+import { LocationAnalysis, Coordinates } from '../../types';
 import ImageUploadManager from './ImageUploadManager';
+import CoordinateInput from '../CoordinateInput';
 
 interface ReportBuilderProps {
   userProfile: UserProfile;
   onReportUpdate: (report: ValuationReport) => void;
+  isNewReport?: boolean;
 }
 
-const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpdate }) => {
+const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpdate, isNewReport = false }) => {
   const { reportId } = useParams<{ reportId: string }>();
   const navigate = useNavigate();
 
   const [report, setReport] = useState<ValuationReport | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentSection, setCurrentSection] = useState(0);
+  const [isLoading, setIsLoading] = useState(!isNewReport);
+  const [currentSection, setCurrentSection] = useState(isNewReport ? -1 : 0); // Start at -1 for GPS input on new reports
   const [formData, setFormData] = useState<Partial<ValuationReport>>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Location intelligence integration
+  const [locationData, setLocationData] = useState<LocationAnalysis | null>(null);
+  const [selectedCoordinates, setSelectedCoordinates] = useState<Coordinates | null>(null);
+  const {
+    data: analysisData,
+    isLoading: isAnalyzing,
+    error: analysisError,
+    analyzeLocation,
+    clearData: clearAnalysis
+  } = useLocationAnalysis();
+
   useEffect(() => {
-    if (reportId) {
+    if (reportId && !isNewReport) {
       loadReport();
+    } else if (isNewReport) {
+      // Initialize new report with user profile data
+      setFormData({
+        report_reference: '',
+        valuation_purpose: 'Fair value assessment for client evaluation',
+        // Auto-populate from user profile
+        valuer_name: userProfile.full_name,
+        professional_title: userProfile.professional_title
+      });
+      setIsLoading(false);
     }
-  }, [reportId]);
+  }, [reportId, isNewReport, userProfile]);
+
+  // Handle location analysis completion
+  useEffect(() => {
+    if (analysisData) {
+      setLocationData(analysisData);
+
+      // Auto-populate location data into report
+      setFormData(prev => ({
+        ...prev,
+        coordinates: analysisData.coordinates,
+        property_address: analysisData.address.formatted_address,
+        administrative_division: {
+          province: analysisData.address.address_components?.state || '',
+          district: '',
+          city: analysisData.address.address_components?.city || '',
+          village: ''
+        },
+        locality_description: generateLocalityDescription(analysisData),
+        access_routes: generateAccessRouteDescription(analysisData),
+        nearby_facilities: analysisData.points_of_interest.map(poi => ({
+          name: poi.name,
+          category: poi.category,
+          distance: (poi.distance_meters / 1000).toFixed(1), // Convert to km
+          address: poi.address
+        }))
+      }));
+
+      toast.success('Location analysis completed! Report auto-populated with location data.');
+      setCurrentSection(0); // Move to first regular section
+    }
+  }, [analysisData]);
+
+  // Location intelligence helper functions
+  const generateLocalityDescription = (data: LocationAnalysis): string => {
+    const facilities = data.points_of_interest.length;
+    const nearestCity = data.nearest_city?.name || 'regional center';
+    const address = data.address;
+
+    return `The property is located in ${address.address_components?.city || 'a residential area'}, ${address.address_components?.state || ''}. The area has ${facilities} nearby facilities including healthcare, educational, and commercial establishments. The nearest major city is ${nearestCity}, providing good connectivity to urban amenities.`;
+  };
+
+  const generateAccessRouteDescription = (data: LocationAnalysis): string => {
+    const address = data.address;
+    const route = address.address_components?.route || 'local access road';
+
+    return `The property is accessible via ${route}. The location provides convenient access to major transportation routes and is well-connected to the surrounding area. Specific directions and route details have been documented based on GPS analysis.`;
+  };
+
+  // Handle GPS coordinate input
+  const handleLocationSubmit = useCallback(async (data: {
+    latitude: number;
+    longitude: number;
+    radius: number;
+    categories: string[];
+  }) => {
+    try {
+      setSelectedCoordinates({ latitude: data.latitude, longitude: data.longitude });
+
+      await analyzeLocation({
+        latitude: data.latitude,
+        longitude: data.longitude,
+        radius: data.radius,
+        includeCategories: data.categories as any[]
+      });
+
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to analyze location');
+    }
+  }, [analyzeLocation]);
 
   const loadReport = async () => {
     try {
@@ -66,7 +160,14 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
     }
   };
 
-  const sections = [
+  // Define sections for both new and existing reports
+  const gpsInputSection = {
+    id: 'gps_input',
+    title: '📍 Property Location Input',
+    description: 'Enter GPS coordinates to automatically populate location data'
+  };
+
+  const mainSections = [
     {
       id: 'basic_info',
       title: '1. Basic Information',
@@ -75,7 +176,7 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
     {
       id: 'property_location',
       title: '2. Property Location',
-      description: 'GPS coordinates and administrative details'
+      description: 'GPS coordinates and administrative details (Auto-populated)'
     },
     {
       id: 'legal_details',
@@ -109,18 +210,21 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
     }
   ];
 
+  // Combine sections based on report type
+  const sections = isNewReport ? [gpsInputSection, ...mainSections] : mainSections;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading report...</p>
+          <p className="text-gray-600">{isAnalyzing ? 'Analyzing location...' : 'Loading report...'}</p>
         </div>
       </div>
     );
   }
 
-  if (!report) {
+  if (!report && !isNewReport) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
@@ -144,15 +248,21 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {report.report_reference || `Report #${report.id}`}
+                {isNewReport ? 'New Valuation Report' : (report?.report_reference || `Report #${report?.id}`)}
               </h1>
               <p className="text-sm text-gray-600">
-                Status: <span className={`font-medium ${
-                  report.status === 'completed' ? 'text-green-600' :
-                  report.status === 'in_progress' ? 'text-blue-600' : 'text-gray-600'
-                }`}>
-                  {report.status.replace('_', ' ').toUpperCase()}
-                </span>
+                {isNewReport ? (
+                  currentSection === -1 ?
+                    'Step 1: Enter property GPS coordinates to begin' :
+                    'Creating new report with location intelligence'
+                ) : (
+                  <>Status: <span className={`font-medium ${
+                    report?.status === 'completed' ? 'text-green-600' :
+                    report?.status === 'in_progress' ? 'text-blue-600' : 'text-gray-600'
+                  }`}>
+                    {report?.status?.replace('_', ' ').toUpperCase()}
+                  </span></>
+                )}
               </p>
             </div>
             <div className="flex gap-4">
@@ -171,7 +281,7 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
               >
                 Preview PDF
               </button>
-              {report.status === 'completed' && (
+              {report?.status === 'completed' && (
                 <button
                   onClick={() => {
                     // Finalize report functionality would go here
@@ -219,12 +329,12 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
               <div className="mb-6">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
                   <span>Progress</span>
-                  <span>{Math.round(((currentSection + 1) / sections.length) * 100)}% complete</span>
+                  <span>{Math.round(((Math.max(0, currentSection + 1)) / sections.length) * 100)}% complete</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
+                    style={{ width: `${((Math.max(0, currentSection + 1)) / sections.length) * 100}%` }}
                   ></div>
                 </div>
               </div>
@@ -232,41 +342,57 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
               {/* Section Content */}
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  {sections[currentSection].title}
+                  {currentSection === -1 ? gpsInputSection.title : sections[currentSection].title}
                 </h2>
-                <p className="text-gray-600 mb-6">{sections[currentSection].description}</p>
+                <p className="text-gray-600 mb-6">
+                  {currentSection === -1 ? gpsInputSection.description : sections[currentSection].description}
+                </p>
 
                 {/* Dynamic Section Content */}
                 <div className="space-y-6">
-                  {renderSectionContent(sections[currentSection].id, formData, handleInputChange, report?.id)}
+                  {renderSectionContent(
+                    currentSection === -1 ? gpsInputSection.id : sections[currentSection].id,
+                    formData,
+                    handleInputChange,
+                    report?.id,
+                    {
+                      handleLocationSubmit,
+                      isAnalyzing,
+                      analysisError,
+                      locationData
+                    }
+                  )}
                 </div>
               </div>
 
               {/* Section Actions */}
               <div className="flex justify-between items-center pt-6 border-t">
                 <button
-                  onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
-                  disabled={currentSection === 0}
+                  onClick={() => setCurrentSection(Math.max(isNewReport ? -1 : 0, currentSection - 1))}
+                  disabled={currentSection === (isNewReport ? -1 : 0)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   ← Previous
                 </button>
 
                 <div className="flex gap-4">
-                  <button
-                    onClick={() => saveSection(sections[currentSection].id)}
-                    disabled={isSaving}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-                  >
-                    {isSaving ? 'Saving...' : 'Save Section'}
-                  </button>
+                  {/* Hide save button for GPS input section */}
+                  {currentSection !== -1 && (
+                    <button
+                      onClick={() => saveSection(sections[currentSection].id)}
+                      disabled={isSaving}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Section'}
+                    </button>
+                  )}
 
                   <button
                     onClick={() => setCurrentSection(Math.min(sections.length - 1, currentSection + 1))}
-                    disabled={currentSection === sections.length - 1}
+                    disabled={currentSection === sections.length - 1 || (isNewReport && currentSection === -1 && !locationData)}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Next →
+                    {currentSection === -1 ? 'Skip Location Analysis' : 'Next →'}
                   </button>
                 </div>
               </div>
@@ -308,9 +434,91 @@ function renderSectionContent(
   sectionId: string,
   formData: Partial<ValuationReport>,
   handleInputChange: (field: string, value: any) => void,
-  reportId?: number
+  reportId?: number,
+  additionalProps?: {
+    handleLocationSubmit?: (data: any) => void;
+    isAnalyzing?: boolean;
+    analysisError?: string | null;
+    locationData?: LocationAnalysis | null;
+  }
 ) {
   switch (sectionId) {
+    case 'gps_input':
+      return (
+        <div className="space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">
+              🌍 Property Location Analysis
+            </h3>
+            <p className="text-sm text-blue-700 mb-4">
+              Enter the GPS coordinates of the property to automatically populate location details,
+              administrative divisions, nearby facilities, and access routes into your valuation report.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-600">
+              <div className="flex items-center">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                Auto-populated administrative data
+              </div>
+              <div className="flex items-center">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                Nearby facilities analysis
+              </div>
+              <div className="flex items-center">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                Access route descriptions
+              </div>
+              <div className="flex items-center">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                Market locality context
+              </div>
+            </div>
+          </div>
+
+          {additionalProps?.handleLocationSubmit && (
+            <CoordinateInput
+              onSubmit={additionalProps.handleLocationSubmit}
+              isLoading={additionalProps.isAnalyzing || false}
+            />
+          )}
+
+          {additionalProps?.analysisError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-700">{additionalProps.analysisError}</p>
+            </div>
+          )}
+
+          {additionalProps?.locationData && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <h4 className="text-lg font-semibold text-green-800 mb-3">
+                ✅ Location Analysis Completed
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <strong className="text-green-700">Address:</strong>
+                  <p className="text-green-600">{additionalProps.locationData.address.formatted_address}</p>
+                </div>
+                <div>
+                  <strong className="text-green-700">Coordinates:</strong>
+                  <p className="text-green-600">
+                    {additionalProps.locationData.coordinates.latitude.toFixed(6)}, {additionalProps.locationData.coordinates.longitude.toFixed(6)}
+                  </p>
+                </div>
+                <div>
+                  <strong className="text-green-700">Nearby Facilities:</strong>
+                  <p className="text-green-600">{additionalProps.locationData.points_of_interest.length} facilities found</p>
+                </div>
+                <div>
+                  <strong className="text-green-700">Nearest City:</strong>
+                  <p className="text-green-600">{additionalProps.locationData.nearest_city?.name || 'N/A'}</p>
+                </div>
+              </div>
+              <p className="text-green-700 mt-3 text-sm">
+                Location data has been automatically populated into the report sections. You can now continue to the next section.
+              </p>
+            </div>
+          )}
+        </div>
+      );
     case 'basic_info':
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
