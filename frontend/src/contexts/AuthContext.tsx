@@ -100,7 +100,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       };
 
     case 'SET_INITIALIZED':
-      return { ...state, initialized: true };
+      return { ...state, initialized: true, loading: false };
 
     default:
       return state;
