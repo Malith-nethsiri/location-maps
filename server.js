@@ -1,23 +1,9 @@
-// Railway Entry Point - Simple Backend Launcher
-// This file tells Railway to use the backend dependencies
+// Railway Entry Point - ValuerPro Backend Launcher
+// Minimal entry point that delegates to backend server
 
-console.log('🚀 Starting ValuerPro Backend Server...');
-console.log('📁 Project Root:', __dirname);
+console.log('🚀 ValuerPro Backend Starting...');
+console.log('📁 Root:', process.cwd());
+console.log('🎯 Backend:', require('path').join(process.cwd(), 'backend'));
 
-// Require and start the backend server directly
-try {
-  require('./backend/server.js');
-} catch (error) {
-  console.error('❌ Failed to start backend server:', error);
-
-  // Fallback: try to run database fix first
-  console.log('🔧 Trying database fix first...');
-  try {
-    require('./backend/scripts/fix_database_schema.js');
-    console.log('✅ Database fix completed, retrying server...');
-    require('./backend/server.js');
-  } catch (fixError) {
-    console.error('❌ Database fix also failed:', fixError);
-    process.exit(1);
-  }
-}
+// Simple require - let the backend handle its own setup
+require('./backend/server.js');

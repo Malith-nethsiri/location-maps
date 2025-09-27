@@ -52,10 +52,10 @@ const ReportsPage: React.FC = () => {
 
   if (isLoadingProfile) {
     return (
-      <div className=\"min-h-screen bg-gray-100 flex items-center justify-center\">
-        <div className=\"bg-white rounded-lg shadow-md p-8 text-center\">
-          <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4\"></div>
-          <p className=\"text-gray-600\">Loading your profile...</p>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your profile...</p>
         </div>
       </div>
     );
@@ -64,8 +64,8 @@ const ReportsPage: React.FC = () => {
   // Show profile setup if profile is incomplete
   if (!userProfile?.full_name || userProfile.full_name === 'New User') {
     return (
-      <div className=\"min-h-screen bg-gray-100\">
-        <div className=\"max-w-4xl mx-auto py-8\">
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-4xl mx-auto py-8">
           <ProfileSetup
             profile={userProfile}
             onProfileUpdate={setUserProfile}
@@ -77,33 +77,33 @@ const ReportsPage: React.FC = () => {
   }
 
   return (
-    <div className=\"min-h-screen bg-gray-100\">
+    <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className=\"bg-white shadow-sm border-b\">
-        <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">
-          <div className=\"flex justify-between items-center py-4\">
-            <div className=\"flex items-center gap-8\">
-              <Link to=\"/\" className=\"text-blue-600 hover:text-blue-800 font-medium\">
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center gap-8">
+              <Link to="/" className="text-blue-600 hover:text-blue-800 font-medium">
                 ← Location Analysis
               </Link>
               <div>
-                <h1 className=\"text-2xl font-bold text-gray-900\">Valuation Reports</h1>
-                <p className=\"text-sm text-gray-600\">Professional property valuation reports with AI assistance</p>
+                <h1 className="text-2xl font-bold text-gray-900">Valuation Reports</h1>
+                <p className="text-sm text-gray-600">Professional property valuation reports with AI assistance</p>
               </div>
             </div>
-            <div className=\"flex items-center gap-4\">
-              <span className=\"text-sm text-gray-600\">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">
                 Welcome, {userProfile.honorable} {userProfile.full_name}
               </span>
               <Link
-                to=\"/reports/profile\"
-                className=\"px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors\"
+                to="/reports/profile"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
               >
                 Profile
               </Link>
               <button
                 onClick={() => createNewReport()}
-                className=\"px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors\"
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 + New Report
               </button>
@@ -113,11 +113,11 @@ const ReportsPage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8\">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Routes>
           {/* Reports List (Default) */}
           <Route
-            path=\"/\"
+            path="/"
             element={
               <ReportsList
                 userId={userId}
@@ -129,7 +129,7 @@ const ReportsPage: React.FC = () => {
 
           {/* Report Builder */}
           <Route
-            path=\"/builder/:reportId\"
+            path="/builder/:reportId"
             element={
               <ReportBuilder
                 userProfile={userProfile}
@@ -143,7 +143,7 @@ const ReportsPage: React.FC = () => {
 
           {/* Profile Management */}
           <Route
-            path=\"/profile\"
+            path="/profile"
             element={
               <ProfileSetup
                 profile={userProfile}
@@ -155,16 +155,16 @@ const ReportsPage: React.FC = () => {
 
           {/* Create from Location Analysis */}
           <Route
-            path=\"/create-from-location\"
+            path="/create-from-location"
             element={
-              <div className=\"bg-white rounded-lg shadow-md p-6\">
-                <h2 className=\"text-lg font-semibold mb-4\">Create Report from Location Analysis</h2>
-                <p className=\"text-gray-600 mb-4\">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-lg font-semibold mb-4">Create Report from Location Analysis</h2>
+                <p className="text-gray-600 mb-4">
                   This feature allows you to create a valuation report using data from your recent location analysis.
                 </p>
                 <button
                   onClick={() => navigate('/')}
-                  className=\"px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700\"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   Go to Location Analysis
                 </button>
@@ -175,16 +175,16 @@ const ReportsPage: React.FC = () => {
       </main>
 
       {/* Quick Stats Footer */}
-      <footer className=\"bg-white border-t mt-auto\">
-        <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4\">
-          <div className=\"flex justify-between items-center text-sm text-gray-600\">
+      <footer className="bg-white border-t mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center text-sm text-gray-600">
             <div>
               Professional valuation reports with AI-powered content generation
             </div>
-            <div className=\"flex gap-6\">
+            <div className="flex gap-6">
               <span>Cost per report: ~$0.02</span>
               <span>Time savings: 70%</span>
-              <Link to=\"/reports/analytics\" className=\"text-blue-600 hover:text-blue-800\">
+              <Link to="/reports/analytics" className="text-blue-600 hover:text-blue-800">
                 View Analytics
               </Link>
             </div>

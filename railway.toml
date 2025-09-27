@@ -1,0 +1,16 @@
+[build]
+builder = "NIXPACKS"
+
+[build.nixpacksPlan]
+providers = ["node"]
+
+[build.nixpacksArchive]
+buildCommand = "cd backend && npm ci && npm run build"
+startCommand = "cd backend && npm start"
+
+[variables]
+NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "false"
+
+[environments.production]
+variables = {}
