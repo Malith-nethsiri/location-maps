@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
+const { query } = require('../config/database');
 const logger = require('../utils/logger');
 const authService = require('../services/authService');
 
@@ -191,14 +191,14 @@ const validateSession = async (req, res, next) => {
             return next(); // Session validation is optional
         }
 
-        const query = `
+        const dbQuery = `
             SELECT us.*, u.email
             FROM user_sessions us
             JOIN users u ON u.id = us.user_id
             WHERE us.session_token = $1 AND us.expires_at > NOW()
         `;
 
-        const result = await pool.query(query, [sessionToken]);
+        const result = await query(dbQuery, [sessionToken]);
 
         if (result.rows.length > 0) {
             const session = result.rows[0];
@@ -227,13 +227,13 @@ function extractTokenFromRequest(req) {
 }
 
 async function getUserById(userId) {
-    const query = `
+    const dbQuery = `
         SELECT id, uuid, email, email_verified, last_login
         FROM users
         WHERE id = $1
     `;
 
-    const result = await pool.query(query, [userId]);
+    const result = await query(dbQuery, [userId]);
     return result.rows[0] || null;
 }
 

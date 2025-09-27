@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const pool = require('../config/database');
+const { query } = require('../config/database');
 const logger = require('../utils/logger');
 
 class AuthService {
@@ -34,13 +34,13 @@ class AuthService {
             const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
             // Insert user
-            const query = `
+            const dbQuery = `
                 INSERT INTO users (email, password_hash, email_verification_token)
                 VALUES ($1, $2, $3)
                 RETURNING id, uuid, email, created_at
             `;
 
-            const result = await pool.query(query, [email, passwordHash, emailVerificationToken]);
+            const result = await query(dbQuery, [email, passwordHash, emailVerificationToken]);
             const user = result.rows[0];
 
             // Create basic profile
@@ -136,7 +136,7 @@ class AuthService {
     async createBasicProfile(userId, profileData) {
         const { fullName, professionalTitle } = profileData;
 
-        const query = `
+        const dbQuery = `
             INSERT INTO user_profiles (
                 user_id,
                 full_name,
@@ -147,7 +147,7 @@ class AuthService {
             RETURNING id
         `;
 
-        const result = await pool.query(query, [
+        const result = await query(dbQuery, [
             userId,
             fullName,
             professionalTitle,
@@ -160,7 +160,7 @@ class AuthService {
 
     // Get User Profile
     async getUserProfile(userId) {
-        const query = `
+        const dbQuery = `
             SELECT
                 up.*,
                 u.email,
@@ -170,7 +170,7 @@ class AuthService {
             WHERE up.user_id = $1
         `;
 
-        const result = await pool.query(query, [userId]);
+        const result = await query(dbQuery, [userId]);
         return result.rows[0] || null;
     }
 
@@ -212,7 +212,7 @@ class AuthService {
                 throw new Error('User profile not found');
             }
 
-            const query = `
+            const dbQuery = `
                 UPDATE user_profiles SET
                     honorable = $2,
                     full_name = $3,
@@ -248,7 +248,7 @@ class AuthService {
             // Determine if profile is complete
             const isComplete = this.isProfileComplete(profileData);
 
-            const result = await pool.query(query, [
+            const result = await query(dbQuery, [
                 userId,
                 honorable,
                 fullName,
@@ -301,8 +301,8 @@ class AuthService {
                 prefix = profile?.report_reference_prefix || 'VAL';
             }
 
-            const query = `SELECT generate_report_reference($1, $2) as reference`;
-            const result = await pool.query(query, [userId, prefix]);
+            const dbQuery = `SELECT generate_report_reference($1, $2) as reference`;
+            const result = await query(dbQuery, [userId, prefix]);
 
             return result.rows[0].reference;
 
@@ -324,14 +324,14 @@ class AuthService {
     // Email Verification
     async verifyEmail(token) {
         try {
-            const query = `
+            const dbQuery = `
                 UPDATE users
                 SET email_verified = true, email_verification_token = NULL
                 WHERE email_verification_token = $1
                 RETURNING id, email
             `;
 
-            const result = await pool.query(query, [token]);
+            const result = await query(dbQuery, [token]);
 
             if (result.rows.length === 0) {
                 throw new Error('Invalid verification token');
@@ -362,13 +362,13 @@ class AuthService {
             const resetToken = crypto.randomBytes(32).toString('hex');
             const resetExpires = new Date(Date.now() + 3600000); // 1 hour
 
-            const query = `
+            const dbQuery = `
                 UPDATE users
                 SET password_reset_token = $1, password_reset_expires = $2
                 WHERE id = $3
             `;
 
-            await pool.query(query, [resetToken, resetExpires, user.id]);
+            await query(dbQuery, [resetToken, resetExpires, user.id]);
 
             // Log password reset request
             await this.logActivity(user.id, 'password_reset_requested', 'user', user.id);
@@ -386,13 +386,13 @@ class AuthService {
         try {
             this.validatePassword(newPassword);
 
-            const query = `
+            const dbQuery = `
                 SELECT id, email FROM users
                 WHERE password_reset_token = $1
                 AND password_reset_expires > NOW()
             `;
 
-            const result = await pool.query(query, [token]);
+            const result = await query(dbQuery, [token]);
 
             if (result.rows.length === 0) {
                 throw new Error('Invalid or expired reset token');
@@ -411,7 +411,7 @@ class AuthService {
                 WHERE id = $2
             `;
 
-            await pool.query(updateQuery, [passwordHash, user.id]);
+            await query(updateQuery, [passwordHash, user.id]);
 
             // Invalidate all sessions
             await this.invalidateAllUserSessions(user.id);
@@ -431,10 +431,10 @@ class AuthService {
 
     // Helper Methods
     async findUserByEmail(email) {
-        const query = `
+        const dbQuery = `
             SELECT * FROM users WHERE email = $1
         `;
-        const result = await pool.query(query, [email.toLowerCase()]);
+        const result = await query(dbQuery, [email.toLowerCase()]);
         return result.rows[0] || null;
     }
 
@@ -455,18 +455,18 @@ class AuthService {
         const sessionToken = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-        const query = `
+        const dbQuery = `
             INSERT INTO user_sessions (user_id, session_token, ip_address, user_agent, expires_at)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING session_token
         `;
 
-        const result = await pool.query(query, [userId, sessionToken, ipAddress, userAgent, expiresAt]);
+        const result = await query(dbQuery, [userId, sessionToken, ipAddress, userAgent, expiresAt]);
         return result.rows[0].session_token;
     }
 
     async handleFailedLogin(userId) {
-        const query = `
+        const dbQuery = `
             UPDATE users
             SET login_attempts = login_attempts + 1,
                 account_locked_until = CASE
@@ -476,36 +476,36 @@ class AuthService {
             WHERE id = $1
         `;
 
-        await pool.query(query, [userId, this.maxLoginAttempts]);
+        await query(dbQuery, [userId, this.maxLoginAttempts]);
     }
 
     async resetLoginAttempts(userId) {
-        const query = `
+        const dbQuery = `
             UPDATE users
             SET login_attempts = 0, account_locked_until = NULL
             WHERE id = $1
         `;
 
-        await pool.query(query, [userId]);
+        await query(dbQuery, [userId]);
     }
 
     async updateLastLogin(userId) {
-        const query = `UPDATE users SET last_login = NOW() WHERE id = $1`;
-        await pool.query(query, [userId]);
+        const dbQuery = `UPDATE users SET last_login = NOW() WHERE id = $1`;
+        await query(dbQuery, [userId]);
     }
 
     async logActivity(userId, action, resource, resourceId, metadata = {}) {
-        const query = `
+        const dbQuery = `
             INSERT INTO user_activity_log (user_id, action, resource, resource_id, metadata)
             VALUES ($1, $2, $3, $4, $5)
         `;
 
-        await pool.query(query, [userId, action, resource, resourceId, JSON.stringify(metadata)]);
+        await query(dbQuery, [userId, action, resource, resourceId, JSON.stringify(metadata)]);
     }
 
     async invalidateAllUserSessions(userId) {
-        const query = `DELETE FROM user_sessions WHERE user_id = $1`;
-        await pool.query(query, [userId]);
+        const dbQuery = `DELETE FROM user_sessions WHERE user_id = $1`;
+        await query(dbQuery, [userId]);
     }
 
     isProfileComplete(profileData) {

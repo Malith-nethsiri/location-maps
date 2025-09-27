@@ -1,6 +1,6 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
-const pool = require('../config/database');
+const { query } = require('../config/database');
 const authService = require('../services/authService');
 const {
     authenticate,
@@ -547,7 +547,7 @@ router.get('/activity', authenticate, async (req, res, next) => {
         const limit = Math.min(parseInt(req.query.limit) || 50, 100);
         const offset = parseInt(req.query.offset) || 0;
 
-        const query = `
+        const dbQuery = `
             SELECT action, resource, resource_id, metadata, created_at
             FROM user_activity_log
             WHERE user_id = $1
@@ -555,7 +555,7 @@ router.get('/activity', authenticate, async (req, res, next) => {
             LIMIT $2 OFFSET $3
         `;
 
-        const result = await pool.query(query, [userId, limit, offset]);
+        const result = await query(dbQuery, [userId, limit, offset]);
 
         res.json({
             success: true,
