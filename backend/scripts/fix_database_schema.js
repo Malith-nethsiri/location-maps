@@ -24,6 +24,82 @@ const schemaFixes = `
 -- Emergency fix for Railway database schema issues
 -- Note: PostGIS will be handled separately
 
+-- Enable necessary extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- Create authentication tables
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuid_generate_v4() UNIQUE,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    email_verified BOOLEAN DEFAULT FALSE,
+    email_verification_token VARCHAR(255),
+    password_reset_token VARCHAR(255),
+    password_reset_expires TIMESTAMP,
+    last_login TIMESTAMP,
+    login_attempts INTEGER DEFAULT 0,
+    account_locked_until TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    honorable VARCHAR(20) CHECK (honorable IN ('Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Prof.')),
+    full_name VARCHAR(255) NOT NULL,
+    professional_title VARCHAR(255),
+    qualifications TEXT[],
+    professional_status VARCHAR(255),
+    house_number VARCHAR(50),
+    street_name VARCHAR(255),
+    area_name VARCHAR(255),
+    city VARCHAR(100),
+    district VARCHAR(100),
+    province VARCHAR(100),
+    postal_code VARCHAR(20),
+    telephone VARCHAR(50),
+    mobile VARCHAR(50),
+    email_address VARCHAR(255),
+    website VARCHAR(255),
+    ivsl_registration VARCHAR(100),
+    professional_body VARCHAR(255) DEFAULT 'Institute of Valuers Sri Lanka',
+    license_number VARCHAR(100),
+    license_expiry DATE,
+    report_reference_prefix VARCHAR(50) DEFAULT 'VAL',
+    signature_image TEXT,
+    company_logo TEXT,
+    standard_disclaimers TEXT,
+    default_methodology TEXT,
+    profile_completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    session_token VARCHAR(255) UNIQUE NOT NULL,
+    ip_address INET,
+    user_agent TEXT,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_activity_log (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    action VARCHAR(100) NOT NULL,
+    resource VARCHAR(100),
+    resource_id INTEGER,
+    ip_address INET,
+    user_agent TEXT,
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Add missing columns to cities table (without PostGIS for now)
 ALTER TABLE cities ADD COLUMN IF NOT EXISTS district VARCHAR(100);
 ALTER TABLE cities ADD COLUMN IF NOT EXISTS province VARCHAR(100);
@@ -73,11 +149,45 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Add indexes for authentication tables
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_uuid ON users(uuid);
+CREATE INDEX IF NOT EXISTS idx_users_email_verified ON users(email_verified);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_completed ON user_profiles(profile_completed);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_activity_user_id ON user_activity_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_activity_created_at ON user_activity_log(created_at);
+
 -- Add missing indexes (without PostGIS spatial indexes for now)
 CREATE INDEX IF NOT EXISTS idx_cities_district ON cities (district);
 CREATE INDEX IF NOT EXISTS idx_cities_province ON cities (province);
 CREATE INDEX IF NOT EXISTS idx_api_cache_key ON api_cache (cache_key);
 CREATE INDEX IF NOT EXISTS idx_api_cache_expires ON api_cache (expires_at);
+
+-- Add update trigger function
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Apply update triggers to authentication tables
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+CREATE TRIGGER update_user_profiles_updated_at
+    BEFORE UPDATE ON user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 `;
 
 async function fixDatabaseSchema() {
