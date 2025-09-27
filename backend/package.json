@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node scripts/fix_database_schema.js && node server.js",
     "dev": "nodemon server.js",
-    "build": "echo 'Build complete'",
+    "build": "npm ci --production --quiet",
     "test": "jest",
     "test:watch": "jest --watch",
     "migrate": "node scripts/migrate.js",

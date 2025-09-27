@@ -11,15 +11,30 @@ class PDFService {
   async initializeBrowser() {
     if (!this.browser) {
       try {
-        this.browser = await puppeteer.launch({
+        // Railway/Docker optimized browser configuration
+        const browserOptions = {
           headless: 'new',
           args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--disable-gpu'
+            '--disable-gpu',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--run-all-compositor-stages-before-draw',
+            '--disable-background-timer-throttling',
+            '--disable-renderer-backgrounding',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-ipc-flooding-protection'
           ]
-        });
+        };
+
+        // Use system Chromium if available (Railway/Docker)
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+          browserOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+
+        this.browser = await puppeteer.launch(browserOptions);
         logger.info('PDF service browser initialized');
       } catch (error) {
         logger.error('Failed to initialize PDF browser:', error);
