@@ -72,6 +72,34 @@ const loginValidation = [
         .withMessage('Password is required')
 ];
 
+// Validation rules for profile update
+const profileUpdateValidation = [
+    body('fullName')
+        .isLength({ min: 2, max: 255 })
+        .withMessage('Full name must be between 2 and 255 characters')
+        .trim(),
+    body('professionalTitle')
+        .isLength({ min: 2, max: 255 })
+        .withMessage('Professional title must be between 2 and 255 characters')
+        .trim(),
+    body('honorable')
+        .optional()
+        .isIn(['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Prof.'])
+        .withMessage('Honorable must be one of: Mr., Mrs., Ms., Dr., Prof.'),
+    body('phoneNumber')
+        .optional()
+        .matches(/^[+]?[0-9\s\-()]{7,20}$/)
+        .withMessage('Invalid phone number format'),
+    body('mobileNumber')
+        .optional()
+        .matches(/^[+]?[0-9\s\-()]{7,20}$/)
+        .withMessage('Invalid mobile number format'),
+    body('emailAddress')
+        .optional()
+        .isEmail()
+        .withMessage('Invalid email format')
+];
+
 const loginSchema = {
     type: 'object',
     required: ['email', 'password'],
@@ -312,7 +340,7 @@ router.get('/me', authenticate, async (req, res, next) => {
 });
 
 // PUT /api/auth/profile - Update user profile
-router.put('/profile', authenticate, validateRequest(profileUpdateSchema), async (req, res, next) => {
+router.put('/profile', authenticate, profileUpdateValidation, handleValidationErrors, async (req, res, next) => {
     try {
         const userId = req.user.id;
         const profileData = req.body;
