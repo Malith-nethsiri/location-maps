@@ -62,6 +62,16 @@ const registerValidation = [
         .trim()
 ];
 
+// Validation rules for login
+const loginValidation = [
+    body('email')
+        .isEmail()
+        .withMessage('Valid email is required'),
+    body('password')
+        .notEmpty()
+        .withMessage('Password is required')
+];
+
 const loginSchema = {
     type: 'object',
     required: ['email', 'password'],
@@ -224,7 +234,7 @@ router.post('/register', authRateLimit, registerValidation, handleValidationErro
 });
 
 // POST /api/auth/login - User login
-router.post('/login', authRateLimit, validateRequest(loginSchema), async (req, res, next) => {
+router.post('/login', authRateLimit, loginValidation, handleValidationErrors, async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const ipAddress = req.ip;
