@@ -117,6 +117,9 @@ export interface ValuationReport {
   water_table_depth?: string;
   flood_status?: string;
 
+  // Land Features
+  land_features?: string;
+
   // Plantation
   plantation_description?: string;
   plantation_details?: string;
@@ -129,9 +132,12 @@ export interface ValuationReport {
   wall_description?: string;
   floor_description?: string;
   doors_windows_description?: string;
+  doors_windows?: string;
   room_layout_description?: string;
   total_floor_area?: number; // square feet
+  bedrooms?: string;
   conveniences_list?: string[];
+  building_conveniences?: string[];
 
   // Locality Description (Section 8.0) - AI Enhanced
   locality_type?: string;
@@ -161,6 +167,7 @@ export interface ValuationReport {
 
   // Contractor's Method Calculations
   land_extent?: string;
+  total_extent?: string;
   land_rate?: number;
   land_value?: number;
   floor_area?: number;

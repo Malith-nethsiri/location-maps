@@ -103,8 +103,8 @@ const ReportInitializationForm: React.FC<ReportInitializationFormProps> = ({
   const handleInputChange = (section: keyof ReportFormData, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [section]: typeof prev[section] === 'object'
-        ? { ...prev[section], [field]: value }
+      [section]: typeof prev[section] === 'object' && prev[section] !== null
+        ? { ...(prev[section] as Record<string, any>), [field]: value }
         : value
     }));
   };
