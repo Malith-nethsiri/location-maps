@@ -4,7 +4,7 @@
   "description": "Backend API for Location Intelligence Web App",
   "main": "server.js",
   "scripts": {
-    "start": "node scripts/fix_database_schema.js && node server.js",
+    "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "npm ci --production --quiet",
     "test": "jest",
