@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
-    "fix-db": "node scripts/fix_database_schema.js"
+    "fix-db": "node scripts/fix_database_schema.js",
+    "setup-postgis": "node scripts/setup_postgis.js"
   },
   "dependencies": {
     "express": "^4.18.2",

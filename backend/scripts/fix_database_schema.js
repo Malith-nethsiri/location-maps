@@ -22,17 +22,12 @@ const pool = new Pool({
 
 const schemaFixes = `
 -- Emergency fix for Railway database schema issues
--- Enable PostGIS extension
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- Note: PostGIS will be handled separately
 
--- Add missing columns to cities table
-ALTER TABLE cities ADD COLUMN IF NOT EXISTS geom GEOMETRY(POINT, 4326);
+-- Add missing columns to cities table (without PostGIS for now)
 ALTER TABLE cities ADD COLUMN IF NOT EXISTS district VARCHAR(100);
 ALTER TABLE cities ADD COLUMN IF NOT EXISTS province VARCHAR(100);
 ALTER TABLE cities ADD COLUMN IF NOT EXISTS population_tier VARCHAR(50);
-
--- Update geom column for existing records
-UPDATE cities SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) WHERE geom IS NULL;
 
 -- Add missing columns to pois table
 ALTER TABLE pois ADD COLUMN IF NOT EXISTS google_types TEXT[];
@@ -78,8 +73,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Add missing indexes
-CREATE INDEX IF NOT EXISTS idx_cities_geom ON cities USING GIST (geom);
+-- Add missing indexes (without PostGIS spatial indexes for now)
 CREATE INDEX IF NOT EXISTS idx_cities_district ON cities (district);
 CREATE INDEX IF NOT EXISTS idx_cities_province ON cities (province);
 CREATE INDEX IF NOT EXISTS idx_api_cache_key ON api_cache (cache_key);
