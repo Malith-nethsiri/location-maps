@@ -9,11 +9,11 @@ import {
   ReportValidation
 } from '../types/reports';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 class ReportsAPI {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}/api/reports${endpoint}`;
+    const url = `${API_BASE_URL}/reports${endpoint}`;
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
