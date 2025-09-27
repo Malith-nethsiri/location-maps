@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../utils/api';
+import axios from 'axios';
 import {
   DocumentTextIcon,
   EyeIcon,
@@ -89,7 +89,7 @@ export default function ReportList() {
         sortOrder: state.sortOrder
       });
 
-      const response = await api.get(`/reports?${params}`);
+      const response = await axios.get(`/reports?${params}`);
       const { reports, pagination } = response.data.data;
 
       setState(prev => ({
@@ -111,7 +111,7 @@ export default function ReportList() {
 
   const fetchDistricts = async () => {
     try {
-      const response = await api.get('/reports/districts');
+      const response = await axios.get('/reports/districts');
       setDistricts(response.data.data);
     } catch (error) {
       console.error('Failed to fetch districts:', error);
@@ -122,7 +122,7 @@ export default function ReportList() {
     if (!confirm('Are you sure you want to delete this report?')) return;
 
     try {
-      await api.delete(`/reports/${reportId}`);
+      await axios.delete(`/reports/${reportId}`);
       fetchReports();
     } catch (error: any) {
       alert(error.response?.data?.message || 'Failed to delete report');
@@ -131,7 +131,7 @@ export default function ReportList() {
 
   const handleDownloadPDF = async (reportId: number) => {
     try {
-      const response = await api.get(`/reports/${reportId}/pdf`, {
+      const response = await axios.get(`/reports/${reportId}/pdf`, {
         responseType: 'blob'
       });
 

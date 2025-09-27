@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { api } from '../../utils/api';
+import axios from 'axios';
 import ReportMetrics from './ReportMetrics';
 import ReportAnalytics from './ReportAnalytics';
 import ReportList from './ReportList';
@@ -53,7 +53,7 @@ export default function ReportDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/reports/dashboard');
+      const response = await axios.get('/reports/dashboard');
       setDashboardData(response.data.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load dashboard');

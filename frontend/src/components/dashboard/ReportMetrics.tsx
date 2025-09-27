@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   ClockIcon,
   CheckCircleIcon,
   DocumentDuplicateIcon,
@@ -103,8 +103,8 @@ export default function ReportMetrics({ data }: ReportMetricsProps) {
                       ? 'text-red-600'
                       : 'text-gray-500'
                   }`}>
-                    {metric.changeType === 'positive' && <TrendingUpIcon className="h-4 w-4 mr-1" />}
-                    {metric.changeType === 'negative' && <TrendingDownIcon className="h-4 w-4 mr-1" />}
+                    {metric.changeType === 'positive' && <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />}
+                    {metric.changeType === 'negative' && <ArrowTrendingDownIcon className="h-4 w-4 mr-1" />}
                     <span className="text-sm font-medium">{metric.change}</span>
                   </div>
                 </div>

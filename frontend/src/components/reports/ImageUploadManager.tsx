@@ -147,7 +147,7 @@ const ImageUploadManager: React.FC<ImageUploadManagerProps> = ({
   };
 
   const handleDeleteImage = async (imageId: number) => {
-    if (!confirm('Are you sure you want to delete this image?')) return;
+    if (!window.confirm('Are you sure you want to delete this image?')) return;
 
     try {
       const response = await fetch(`/api/reports/${reportId}/images/${imageId}`, {

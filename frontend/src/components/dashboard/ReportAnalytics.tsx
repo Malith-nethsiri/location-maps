@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../../utils/api';
+import axios from 'axios';
 import {
   ChartBarIcon,
   CalendarIcon,
@@ -48,7 +48,7 @@ export default function ReportAnalytics({ data }: ReportAnalyticsProps) {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/reports/analytics?timeframe=${selectedTimeframe}`);
+      const response = await axios.get(`/reports/analytics?timeframe=${selectedTimeframe}`);
       setAnalyticsData(response.data.data);
     } catch (error) {
       console.error('Failed to fetch analytics:', error);

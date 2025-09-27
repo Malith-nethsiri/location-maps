@@ -112,9 +112,9 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className=\"bg-white rounded-lg shadow-md p-8 text-center\">
-          <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4\"></div>
-          <p className=\"text-gray-600\">Loading report...</p>
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading report...</p>
         </div>
       </div>
     );
@@ -122,12 +122,12 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
 
   if (!report) {
     return (
-      <div className=\"min-h-screen bg-gray-100 flex items-center justify-center\">
-        <div className=\"bg-white rounded-lg shadow-md p-8 text-center\">
-          <p className=\"text-gray-600\">Report not found</p>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <p className="text-gray-600">Report not found</p>
           <button
             onClick={() => navigate('/reports')}
-            className=\"mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700\"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             Back to Reports
           </button>
@@ -137,16 +137,16 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
   }
 
   return (
-    <div className=\"min-h-screen bg-gray-100\">
+    <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <div className=\"bg-white shadow-sm border-b\">
-        <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4\">
-          <div className=\"flex justify-between items-center\">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className=\"text-2xl font-bold text-gray-900\">
+              <h1 className="text-2xl font-bold text-gray-900">
                 {report.report_reference || `Report #${report.id}`}
               </h1>
-              <p className=\"text-sm text-gray-600\">
+              <p className="text-sm text-gray-600">
                 Status: <span className={`font-medium ${
                   report.status === 'completed' ? 'text-green-600' :
                   report.status === 'in_progress' ? 'text-blue-600' : 'text-gray-600'
@@ -155,10 +155,10 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
                 </span>
               </p>
             </div>
-            <div className=\"flex gap-4\">
+            <div className="flex gap-4">
               <button
                 onClick={() => navigate('/reports')}
-                className=\"px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors\"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
               >
                 ← Back to Reports
               </button>
@@ -167,7 +167,7 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
                   // Generate preview functionality would go here
                   toast.info('PDF preview functionality will be implemented');
                 }}
-                className=\"px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors\"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 Preview PDF
               </button>
@@ -177,7 +177,7 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
                     // Finalize report functionality would go here
                     toast.info('Report finalization functionality will be implemented');
                   }}
-                  className=\"px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors\"
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
                 >
                   Finalize Report
                 </button>
@@ -187,13 +187,13 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
         </div>
       </div>
 
-      <div className=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8\">
-        <div className=\"grid grid-cols-1 lg:grid-cols-4 gap-8\">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Section Navigation */}
-          <div className=\"lg:col-span-1\">
-            <div className=\"bg-white rounded-lg shadow-md p-4 sticky top-8\">
-              <h3 className=\"text-lg font-semibold text-gray-900 mb-4\">Report Sections</h3>
-              <nav className=\"space-y-2\">
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-4 sticky top-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Report Sections</h3>
+              <nav className="space-y-2">
                 {sections.map((section, index) => (
                   <button
                     key={section.id}
@@ -204,8 +204,8 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
                         : 'hover:bg-gray-100 text-gray-600'
                     }`}
                   >
-                    <div className=\"text-sm font-medium\">{section.title}</div>
-                    <div className=\"text-xs text-gray-500\">{section.description}</div>
+                    <div className="text-sm font-medium">{section.title}</div>
+                    <div className="text-xs text-gray-500">{section.description}</div>
                   </button>
                 ))}
               </nav>
@@ -213,50 +213,50 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
           </div>
 
           {/* Main Content */}
-          <div className=\"lg:col-span-3\">
-            <div className=\"bg-white rounded-lg shadow-md p-6\">
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-lg shadow-md p-6">
               {/* Progress Bar */}
-              <div className=\"mb-6\">
-                <div className=\"flex justify-between text-sm text-gray-600 mb-2\">
+              <div className="mb-6">
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
                   <span>Progress</span>
                   <span>{Math.round(((currentSection + 1) / sections.length) * 100)}% complete</span>
                 </div>
-                <div className=\"w-full bg-gray-200 rounded-full h-2\">
+                <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className=\"bg-blue-600 h-2 rounded-full transition-all duration-300\"
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
                   ></div>
                 </div>
               </div>
 
               {/* Section Content */}
-              <div className=\"mb-8\">
-                <h2 className=\"text-xl font-bold text-gray-900 mb-2\">
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
                   {sections[currentSection].title}
                 </h2>
-                <p className=\"text-gray-600 mb-6\">{sections[currentSection].description}</p>
+                <p className="text-gray-600 mb-6">{sections[currentSection].description}</p>
 
                 {/* Dynamic Section Content */}
-                <div className=\"space-y-6\">
+                <div className="space-y-6">
                   {renderSectionContent(sections[currentSection].id, formData, handleInputChange, report?.id)}
                 </div>
               </div>
 
               {/* Section Actions */}
-              <div className=\"flex justify-between items-center pt-6 border-t\">
+              <div className="flex justify-between items-center pt-6 border-t">
                 <button
                   onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
                   disabled={currentSection === 0}
-                  className=\"px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors\"
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   ← Previous
                 </button>
 
-                <div className=\"flex gap-4\">
+                <div className="flex gap-4">
                   <button
                     onClick={() => saveSection(sections[currentSection].id)}
                     disabled={isSaving}
-                    className=\"px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors\"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
                   >
                     {isSaving ? 'Saving...' : 'Save Section'}
                   </button>
@@ -264,7 +264,7 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
                   <button
                     onClick={() => setCurrentSection(Math.min(sections.length - 1, currentSection + 1))}
                     disabled={currentSection === sections.length - 1}
-                    className=\"px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors\"
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next →
                   </button>
@@ -273,16 +273,16 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
             </div>
 
             {/* AI Enhancement Panel */}
-            <div className=\"mt-6 bg-green-50 border border-green-200 rounded-lg p-6\">
-              <div className=\"flex items-center justify-between\">
+            <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-6">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className=\"text-lg font-semibold text-green-800 mb-2\">
+                  <h3 className="text-lg font-semibold text-green-800 mb-2">
                     AI Content Enhancement
                   </h3>
-                  <p className=\"text-sm text-green-700\">
+                  <p className="text-sm text-green-700">
                     Generate professional descriptions for route access, property features, and market analysis.
                   </p>
-                  <p className=\"text-xs text-green-600 mt-1\">
+                  <p className="text-xs text-green-600 mt-1">
                     Cost: ~$0.02 per report with intelligent caching
                   </p>
                 </div>
@@ -290,7 +290,7 @@ const ReportBuilder: React.FC<ReportBuilderProps> = ({ userProfile, onReportUpda
                   onClick={() => {
                     toast.info('AI enhancement functionality will be implemented when OpenAI API is configured');
                   }}
-                  className=\"px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium\"
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
                   Enhance with AI
                 </button>
@@ -313,41 +313,41 @@ function renderSectionContent(
   switch (sectionId) {
     case 'basic_info':
       return (
-        <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Client Name *
             </label>
             <input
-              type=\"text\"
+              type="text"
               value={formData.instruction_source || ''}
               onChange={(e) => handleInputChange('instruction_source', e.target.value)}
-              placeholder=\"Enter client name\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="Enter client name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Client Organization
             </label>
             <input
-              type=\"text\"
+              type="text"
               value={formData.client_organization || ''}
               onChange={(e) => handleInputChange('client_organization', e.target.value)}
-              placeholder=\"Bank, Company, or Individual\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="Bank, Company, or Individual"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className=\"md:col-span-2\">
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Valuation Purpose *
             </label>
             <textarea
               value={formData.valuation_purpose || ''}
               onChange={(e) => handleInputChange('valuation_purpose', e.target.value)}
-              placeholder=\"e.g., Mortgage evaluation, Fair value assessment, Insurance purposes\"
+              placeholder="e.g., Mortgage evaluation, Fair value assessment, Insurance purposes"
               rows={3}
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -355,70 +355,70 @@ function renderSectionContent(
 
     case 'property_location':
       return (
-        <div className=\"space-y-6\">
-          <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Latitude
               </label>
               <input
-                type=\"number\"
-                step=\"any\"
+                type="number"
+                step="any"
                 value={formData.latitude || ''}
                 onChange={(e) => handleInputChange('latitude', parseFloat(e.target.value))}
-                placeholder=\"7.8731\"
-                className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+                placeholder="7.8731"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Longitude
               </label>
               <input
-                type=\"number\"
-                step=\"any\"
+                type="number"
+                step="any"
                 value={formData.longitude || ''}
                 onChange={(e) => handleInputChange('longitude', parseFloat(e.target.value))}
-                placeholder=\"80.7718\"
-                className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+                placeholder="80.7718"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
-          <div className=\"grid grid-cols-1 md:grid-cols-3 gap-4\">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Village/Area
               </label>
               <input
-                type=\"text\"
+                type="text"
                 value={formData.village_name || ''}
                 onChange={(e) => handleInputChange('village_name', e.target.value)}
-                placeholder=\"Village name\"
-                className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+                placeholder="Village name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 District
               </label>
               <input
-                type=\"text\"
+                type="text"
                 value={formData.district || ''}
                 onChange={(e) => handleInputChange('district', e.target.value)}
-                placeholder=\"District name\"
-                className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+                placeholder="District name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Province
               </label>
               <input
-                type=\"text\"
+                type="text"
                 value={formData.province || ''}
                 onChange={(e) => handleInputChange('province', e.target.value)}
-                placeholder=\"Province name\"
-                className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+                placeholder="Province name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -427,53 +427,53 @@ function renderSectionContent(
 
     case 'legal_details':
       return (
-        <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Lot Number *
             </label>
             <input
-              type=\"text\"
+              type="text"
               value={formData.lot_number || ''}
               onChange={(e) => handleInputChange('lot_number', e.target.value)}
-              placeholder=\"e.g., 15\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="e.g., 15"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Plan Number *
             </label>
             <input
-              type=\"text\"
+              type="text"
               value={formData.plan_number || ''}
               onChange={(e) => handleInputChange('plan_number', e.target.value)}
-              placeholder=\"e.g., 1234 dated 2023-01-15\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="e.g., 1234 dated 2023-01-15"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Licensed Surveyor
             </label>
             <input
-              type=\"text\"
+              type="text"
               value={formData.licensed_surveyor || ''}
               onChange={(e) => handleInputChange('licensed_surveyor', e.target.value)}
-              placeholder=\"Surveyor name\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="Surveyor name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Current Owner *
             </label>
             <input
-              type=\"text\"
+              type="text"
               value={formData.current_owner || ''}
               onChange={(e) => handleInputChange('current_owner', e.target.value)}
-              placeholder=\"Property owner name\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="Property owner name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -862,53 +862,53 @@ function renderSectionContent(
 
     case 'valuation':
       return (
-        <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Land Rate (Rs. per perch) *
             </label>
             <input
-              type=\"number\"
+              type="number"
               value={formData.land_rate || ''}
               onChange={(e) => handleInputChange('land_rate', parseFloat(e.target.value))}
-              placeholder=\"450000\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="450000"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Market Value (Rs.) *
             </label>
             <input
-              type=\"number\"
+              type="number"
               value={formData.market_value || ''}
               onChange={(e) => handleInputChange('market_value', parseFloat(e.target.value))}
-              placeholder=\"15000000\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="15000000"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Forced Sale Value (Rs.)
             </label>
             <input
-              type=\"number\"
+              type="number"
               value={formData.forced_sale_value || ''}
               onChange={(e) => handleInputChange('forced_sale_value', parseFloat(e.target.value))}
-              placeholder=\"12000000\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="12000000"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className=\"block text-sm font-medium text-gray-700 mb-2\">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Insurance Value (Rs.)
             </label>
             <input
-              type=\"number\"
+              type="number"
               value={formData.insurance_value || ''}
               onChange={(e) => handleInputChange('insurance_value', parseFloat(e.target.value))}
-              placeholder=\"8000000\"
-              className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"
+              placeholder="8000000"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -931,15 +931,15 @@ function renderSectionContent(
 
     default:
       return (
-        <div className=\"text-center py-12\">
-          <div className=\"text-gray-400 mb-4\">
-            <svg className=\"mx-auto h-12 w-12\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">
-              <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2}
-                d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\" />
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h3 className=\"text-lg font-medium text-gray-900 mb-2\">Section Under Development</h3>
-          <p className=\"text-gray-600\">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Section Under Development</h3>
+          <p className="text-gray-600">
             This section's form fields will be implemented based on the report-structure.md specifications.
           </p>
         </div>
