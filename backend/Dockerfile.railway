@@ -31,7 +31,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 COPY package*.json ./
 
 # Install dependencies with optimizations
-RUN npm ci --production --quiet
+RUN npm ci --omit=dev --quiet
 
 # Copy application code
 COPY . .
