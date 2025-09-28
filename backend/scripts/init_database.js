@@ -24,7 +24,15 @@ const fullSchema = `
 -- ===============================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "postgis";
+-- PostGIS extension (optional - will skip if not available)
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS "postgis";
+    RAISE NOTICE 'PostGIS extension enabled successfully';
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'PostGIS extension not available - spatial features will be limited';
+END
+$$;
 
 -- ===============================================
 -- Users and Authentication Tables
@@ -111,7 +119,7 @@ CREATE TABLE IF NOT EXISTS valuation_reports (
     client_address TEXT,
 
     -- Property Location
-    coordinates GEOGRAPHY(POINT, 4326),
+    -- coordinates GEOGRAPHY(POINT, 4326), -- Requires PostGIS
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
     village_name VARCHAR(255),
@@ -347,8 +355,8 @@ CREATE INDEX IF NOT EXISTS idx_generated_content_report_id ON generated_content(
 CREATE INDEX IF NOT EXISTS idx_generated_content_type ON generated_content(content_type);
 CREATE INDEX IF NOT EXISTS idx_generated_content_created_at ON generated_content(created_at);
 
--- Spatial index for coordinates
-CREATE INDEX IF NOT EXISTS idx_valuation_reports_coordinates ON valuation_reports USING GIST (coordinates);
+-- Spatial index for coordinates (requires PostGIS)
+-- CREATE INDEX IF NOT EXISTS idx_valuation_reports_coordinates ON valuation_reports USING GIST (coordinates);
 
 -- ===============================================
 -- Functions and Triggers
