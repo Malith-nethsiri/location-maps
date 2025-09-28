@@ -12,7 +12,9 @@
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
     "fix-db": "node scripts/fix_database_schema.js",
-    "setup-postgis": "node scripts/setup_postgis.js"
+    "setup-postgis": "node scripts/setup_postgis.js",
+    "init-db": "node scripts/init_database.js",
+    "create-auth": "node scripts/create_auth_tables.js"
   },
   "dependencies": {
     "express": "^4.18.2",

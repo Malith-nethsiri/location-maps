@@ -8,10 +8,10 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const logger = require('./utils/logger');
 
-// Initialize authentication tables on startup
-const { createTables } = require('./scripts/create_auth_tables');
-createTables().catch(error => {
-  logger.warn('Auth tables creation failed (may already exist):', error.message);
+// Initialize complete database schema on startup
+const { initializeDatabase } = require('./scripts/init_database');
+initializeDatabase().catch(error => {
+  logger.warn('Database initialization failed (may already exist):', error.message);
 });
 
 // Import route handlers
